@@ -1,0 +1,57 @@
+{
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/schema/authorities.json",
+  "version": "1.0.0",
+  "description": "Registry of organisations that can make authoritative assertions, and the scope each one is authoritative over. The resolution policy ranks an official assertion first; this registry is what makes that rank operable rather than forgeable. An organisation absent from this registry carries no precedence, whatever it claims about itself.",
+
+  "why_this_exists": "A production committee, studio, licensor or distributor holds catalogue facts that no aggregator can derive: which works are one production, what a release was actually called on delivery, which cuts exist, and what the intended episode ordering was. Those facts currently reach the ecosystem by being scraped out of marketing pages, if at all. This registry gives them somewhere to be stated directly, with the scope of the claim bounded so that stating them does not become a way to overwrite everything else.",
+
+  "roles": {
+    "studio": "Produced or animated the work",
+    "production_committee": "Holds the production rights, typically a consortium",
+    "publisher": "Published the source material, or the work itself in print or home media",
+    "licensor": "Holds distribution rights for a territory",
+    "distributor": "Distributes to platforms or retail in a territory",
+    "platform": "Operates a catalogue that carries the work"
+  },
+
+  "scope_kinds": {
+    "own_catalogue": "Identifiers and structure within the organisation's own identifier space. The strongest scope, and the only one that is unambiguous.",
+    "own_titles": "Assertions about works the organisation produced, published, or holds rights to, in namespaces it does not operate. Ranks as ordinary evidence unless corroborated, because an organisation can be wrong about how a third party catalogued its work.",
+    "territory": "Assertions bounded to a territory, such as a regional episode ordering or a title used on delivery in that market."
+  },
+
+  "verification_methods": {
+    "dns_txt": "A TXT record on a domain the organisation demonstrably controls, naming the GitHub organisation or account making assertions on its behalf. Preferred, because it survives staff changes.",
+    "verified_org_account": "Assertions arrive as pull requests from a GitHub organisation account whose domain is verified by GitHub.",
+    "signed_assertion": "Assertions carry a signature verifiable against a public key published at a well-known location on the organisation's domain."
+  },
+
+  "rules": {
+    "scope_is_bounded": "An authority outranks other evidence only within its declared scope. Outside it, an assertion from a registered authority is ordinary evidence and is corroborated or not on the same terms as anything else. A studio is authoritative about its own production catalogue; it is guessing, with letterhead, about which third-party database entry corresponds.",
+    "assertions_are_reviewed": "Authoritative assertions arrive as pull requests and are reviewed like any other contribution. Review is the audit trail. There is no write path that bypasses it.",
+    "disagreement_is_published": "Two registered authorities disagreeing within overlapping scope produces a disputed state. Both are published, neither is ranked. See policy/resolution-policy.json.",
+    "corrections_may_outrank": "A human-verified correction may outrank a stale authoritative assertion. The disagreement is recorded, never erased. An authority is not infallible, and is least reliable about historical catalogue and about works it acquired rather than produced.",
+    "rollback_by_authority": "Assertions carry the authority that made them, so a set can be identified and reverted if an authority is found to have submitted systematically wrong data.",
+    "withdrawal": "An organisation may withdraw from this registry at any time. Facts already published cannot be un-published, but attribution to the withdrawing organisation is removed on request and future assertions carry no precedence.",
+    "no_pay_to_rank": "Registration is free and confers no commercial advantage. Precedence follows from scope, not from participation."
+  },
+
+  "namespace_grant": {
+    "description": "A registered authority may operate its own identifier namespace, so that catalogue identifiers which exist nowhere else have somewhere to live.",
+    "form": "authority:<slug>",
+    "example_form": "authority:example-studio",
+    "constraints": [
+      "The slug matches the authority's id in this registry",
+      "Identifiers within it are opaque to this project and are never parsed",
+      "Licence posture for a granted namespace is declared by the authority at registration and recorded here, so that what may be redistributed is stated rather than assumed"
+    ]
+  },
+
+  "registration": {
+    "how": "Open an issue using the schema or policy template, stating the organisation, the role, the scope claimed, the verification method offered, and the licence terms under which its assertions are contributed.",
+    "requirement": "Contributions are dedicated to the public domain under CC0-1.0, the same as every other contribution. An organisation that cannot contribute on those terms can still be recorded as a source that others cite, but its assertions do not enter the dataset.",
+    "review": "Registration is a change to this file and follows the schema change process in GOVERNANCE.md: a public issue with a comment period, not a review-time decision."
+  },
+
+  "authorities": []
+}

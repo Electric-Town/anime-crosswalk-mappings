@@ -110,6 +110,21 @@ name, or both. Defined once, used everywhere, and changed only through a schema 
   directly share a namespace and have different provenance. Licence posture attaches to the
   route, not to the namespace.
 
+**Authority**
+: An organisation that can make assertions carrying precedence within a declared scope: a
+  studio, production committee, publisher, licensor, distributor, or platform. Registered in
+  [`schema/authorities.json`](schema/authorities.json) with its role, its scope, and how it
+  is verified. An organisation absent from that registry carries no precedence whatever it
+  claims about itself, because otherwise asserting authority would be the cheapest way to
+  poison the graph.
+
+**Scope**
+: What an Authority is authoritative *about*. Bounded deliberately. An organisation is
+  authoritative over its own catalogue identifiers and its own delivered structure. It is
+  not authoritative about how a third party catalogued its work, because that is a claim
+  about somebody else's database. Outside its scope an authority's assertion is ordinary
+  evidence, weighed on the same terms as anything else.
+
 ## Lifecycle
 
 **Tombstone**

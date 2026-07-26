@@ -1,0 +1,258 @@
+{
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/conformance/cases.json",
+  "version": "1.0.0",
+  "description": "Cases any correct anime crosswalk has to handle. Structure only: no identifiers, so the corpus carries no provenance question and tests expressiveness rather than correctness of a particular row.",
+
+  "capabilities": {
+    "range_scoped_coverage": "An edge applies to a stated span of episodes rather than the whole release",
+    "non_zero_offset": "Source episode n maps to target episode n + k",
+    "dual_numbering": "Season and absolute numbering both recorded where a target exposes both and they diverge",
+    "cross_boundary_span": "One release spans more than one target season",
+    "discontinuous_coverage": "One release maps to several non-adjacent target ranges",
+    "cardinality_expand": "One source episode covers several target episodes",
+    "cardinality_merge": "Several source episodes form one target episode",
+    "numbering_space": "Specials, trailers, credits and parodies occupy their own sequences",
+    "negative_assertion": "A recorded statement that two things are not the same, with reasoning",
+    "alternate_cut": "Sibling releases that are the same work in a different edit",
+    "multi_series_membership": "One release belongs to more than one series",
+    "known_absent": "A recorded statement that no counterpart exists, with the reason",
+    "ordering_variance": "Broadcast order differs from chronological or intended order"
+  },
+
+  "cases": [
+    {
+      "id": "split-cour",
+      "title": "One target season, two upstream releases, the second offset",
+      "breaks": "A 1:1 mapper assigns both upstream releases to the same target season and both resolve to episode 1. The second half of the season is unreachable and the first half is claimed twice.",
+      "capabilities": ["range_scoped_coverage", "non_zero_offset"],
+      "shape": {
+        "source": "Two releases of 12 and 10 episodes, each a separate upstream entry",
+        "target": "One season of 22 episodes",
+        "relationship": "First release covers target 1-12 at offset 0; second covers target 13-22 at offset 12"
+      },
+      "loss_if_unsupported": "The offset. Every episode of the second release resolves twelve positions early, so a client fetching episode titles gets the wrong twelve.",
+      "observed_in": ["long-running shonen series split across broadcast years"]
+    },
+    {
+      "id": "cross-boundary-span",
+      "title": "One release spans two target seasons",
+      "breaks": "A single offset cannot describe it. Applying the first season's offset to the whole release pushes the second half past the end of the season, or negative.",
+      "capabilities": ["range_scoped_coverage", "cross_boundary_span", "discontinuous_coverage"],
+      "shape": {
+        "source": "One release of 26 episodes",
+        "target": "Two seasons, the first ending mid-release",
+        "relationship": "Episodes 1-13 map into season 1; episodes 14-26 map into season 2 with a different offset"
+      },
+      "loss_if_unsupported": "Half the release. Formats carrying one offset per release silently drop the second span or misplace it.",
+      "observed_in": ["series where the upstream cour boundary and the target season boundary disagree"]
+    },
+    {
+      "id": "dual-numbering-divergence",
+      "title": "Target exposes season and absolute numbering and they disagree",
+      "breaks": "Recording only one of them means half of downstream tooling gets the wrong episode. Media server agents differ in which they request.",
+      "capabilities": ["dual_numbering", "non_zero_offset"],
+      "shape": {
+        "source": "One release of 10 episodes",
+        "target": "One series exposing both a season-relative and a series-absolute sequence",
+        "relationship": "The same ten episodes are season 3 episodes 13-22 and absolute episodes 50-59 at the same time"
+      },
+      "loss_if_unsupported": "Whichever numbering was not recorded. This is the single most common cause of a media server matching the wrong episode.",
+      "observed_in": ["any long-running series carried by a provider that maintains both sequences"]
+    },
+    {
+      "id": "double-length-episode",
+      "title": "One source episode covers two target episodes",
+      "breaks": "An affine offset is injective, so it cannot map one source to two targets. Formats built on a single offset represent this as an unparsed string or drop one target.",
+      "capabilities": ["cardinality_expand"],
+      "shape": {
+        "source": "One release where the premiere is double length",
+        "target": "A provider that split the premiere into two numbered episodes",
+        "relationship": "Source episode 1 corresponds to target episodes 1 and 2; source 2 to target 3, and so on"
+      },
+      "loss_if_unsupported": "The second target episode, and the offset for everything after it. A progress-sync client marks one episode seen and leaves the other unwatched, on every entry with this shape.",
+      "observed_in": ["series with feature-length premieres or finales"]
+    },
+    {
+      "id": "split-broadcast",
+      "title": "Two source episodes form one target episode",
+      "breaks": "The inverse of the previous case and strictly harder. Inverting a scalar map gives one key two values, which a scalar format has no type for.",
+      "capabilities": ["cardinality_merge"],
+      "shape": {
+        "source": "One release where a story was broadcast in two parts",
+        "target": "A provider that lists the two parts as a single episode",
+        "relationship": "Source episodes 1 and 2 together correspond to target episode 1"
+      },
+      "loss_if_unsupported": "Resolution in one direction. Metadata enrichment needs both directions, so a format that only resolves source to target fails on retrieval.",
+      "observed_in": ["series with two-part stories consolidated for home release"]
+    },
+    {
+      "id": "long-runner-arc-seasons",
+      "title": "One upstream entry, many target seasons",
+      "breaks": "The upstream models the whole run as one entry; the target splits it into twenty or more seasons on arc boundaries that exist nowhere upstream.",
+      "capabilities": ["range_scoped_coverage", "discontinuous_coverage", "cross_boundary_span", "dual_numbering"],
+      "shape": {
+        "source": "One release of more than a thousand episodes",
+        "target": "Many seasons whose boundaries follow story arcs",
+        "relationship": "One source release requires one edge per target season, each with its own range and offset"
+      },
+      "loss_if_unsupported": "Everything past the first season boundary. This is the shape where a 1:1 model is most visibly wrong and most heavily used.",
+      "observed_in": ["decades-long weekly series still in production"]
+    },
+    {
+      "id": "broadcast-order-variance",
+      "title": "Broadcast order is not chronological order",
+      "breaks": "There is no single correct sequence, so a format that assumes one ordering silently picks one and is wrong for every consumer who wanted the other.",
+      "capabilities": ["ordering_variance", "discontinuous_coverage"],
+      "shape": {
+        "source": "Several releases whose broadcast sequence differs from their internal chronology",
+        "target": "A provider that lists them in one order only",
+        "relationship": "The mapping is correct only relative to a stated ordering, which has to be part of the assertion"
+      },
+      "loss_if_unsupported": "The distinction between orderings. Consumers cannot tell whether a sequence is broadcast, chronological, or recommended.",
+      "observed_in": ["series with an acknowledged watch-order debate"]
+    },
+    {
+      "id": "recut-series",
+      "title": "A recut of an existing series with a different episode count",
+      "breaks": "Naive matching on title and year merges the recut with the original, and their episode counts do not agree, so every offset derived from the merge is wrong.",
+      "capabilities": ["alternate_cut", "negative_assertion", "cardinality_merge"],
+      "shape": {
+        "source": "Two releases: an original run and a later recut covering the same story in fewer episodes",
+        "target": "Providers that list them separately, or sometimes do not",
+        "relationship": "Sibling releases linked as alternate cuts, never merged into one entity"
+      },
+      "loss_if_unsupported": "The distinction between two works that share a story. Merging them corrupts both.",
+      "observed_in": ["remastered or re-edited versions of long-running series"]
+    },
+    {
+      "id": "film-multiple-cuts",
+      "title": "One film released in several cuts",
+      "breaks": "Version suffixes look like noise to a title matcher, so the cuts collapse into one entry and whichever runtime and identifier won is arbitrary.",
+      "capabilities": ["alternate_cut", "negative_assertion"],
+      "shape": {
+        "source": "Three releases that are the same film in different edits",
+        "target": "Providers that variously list one, some, or all of them",
+        "relationship": "Three sibling releases linked as alternate cuts of one another"
+      },
+      "loss_if_unsupported": "Two of the three cuts, and any way for a consumer to request a specific one.",
+      "observed_in": ["theatrical film series reissued with revised edits"]
+    },
+    {
+      "id": "theatrical-parts-plus-compilation",
+      "title": "One story as several theatrical parts, plus a compilation",
+      "breaks": "The compilation contains the parts, so a 1:1 model must choose between mapping the parts and mapping the compilation, and loses whichever it did not choose.",
+      "capabilities": ["range_scoped_coverage", "multi_series_membership", "alternate_cut"],
+      "shape": {
+        "source": "Three theatrical parts and one compilation covering all three",
+        "target": "Providers listing either the parts or the compilation, rarely both",
+        "relationship": "The compilation is a superset of the three parts; the parts are subsets of it"
+      },
+      "loss_if_unsupported": "Either the parts or the compilation. Consumers holding one cannot resolve to the other.",
+      "observed_in": ["film trilogies later reissued as a single feature"]
+    },
+    {
+      "id": "same-title-different-work",
+      "title": "Two distinct works sharing a title",
+      "breaks": "An automated pass merges them on title similarity. If a shared identifier exists anywhere upstream, unconstrained transitive closure pulls both into one cluster and the merge is undetectable afterwards.",
+      "capabilities": ["negative_assertion"],
+      "shape": {
+        "source": "Two releases, decades apart, adapting the same material under the same title",
+        "target": "Providers that sometimes share an identifier between them",
+        "relationship": "An explicit recorded statement that these are not the same work, with reasoning"
+      },
+      "loss_if_unsupported": "The refutation. Without it the same bad merge is re-derived by every subsequent automated pass, forever.",
+      "observed_in": ["adaptations remade a decade or more after the original"]
+    },
+    {
+      "id": "live-action-adaptation",
+      "title": "A live-action adaptation is not the animated work",
+      "breaks": "Shared title, shared source material, often a shared franchise identifier. Title matching merges them and the episode counts, air dates and cast all conflict.",
+      "capabilities": ["negative_assertion"],
+      "shape": {
+        "source": "One animated release and one live-action release of the same underlying story",
+        "target": "Providers that list both, sometimes under one franchise",
+        "relationship": "Explicitly related, explicitly not the same work"
+      },
+      "loss_if_unsupported": "The distinction. A consumer requesting episode data receives the wrong medium.",
+      "observed_in": ["streaming-platform live-action adaptations of long-running animated series"]
+    },
+    {
+      "id": "regional-episode-skips",
+      "title": "Episodes skipped in one region cause permanent numbering drift",
+      "breaks": "After a skipped episode, every subsequent episode is offset by one in that region, and the drift accumulates with each further skip.",
+      "capabilities": ["range_scoped_coverage", "non_zero_offset", "discontinuous_coverage", "known_absent"],
+      "shape": {
+        "source": "One release in its original broadcast numbering",
+        "target": "A regional edition missing several episodes",
+        "relationship": "Several ranges, each with its own offset, and recorded absences for the skipped episodes"
+      },
+      "loss_if_unsupported": "Correct numbering for everything after the first skip. A single offset is right only until the first gap.",
+      "observed_in": ["long-running series with episodes withheld from some territories"]
+    },
+    {
+      "id": "season-never-aired-in-region",
+      "title": "An early season that never aired in a region",
+      "breaks": "Regional providers number the first season they carried as season 1, so every season number after it disagrees with the origin numbering by one.",
+      "capabilities": ["range_scoped_coverage", "non_zero_offset", "known_absent"],
+      "shape": {
+        "source": "A series whose first season was never distributed in some territories",
+        "target": "Providers numbering from the first season they carried",
+        "relationship": "A constant season-level displacement, plus a recorded absence for the season that was never carried"
+      },
+      "loss_if_unsupported": "Season alignment for the whole series, not just the missing season.",
+      "observed_in": ["series whose earliest run was not licensed internationally"]
+    },
+    {
+      "id": "specials-numbering-spaces",
+      "title": "Specials, trailers and credits occupy their own sequences",
+      "breaks": "A trailer numbered 1 and an episode numbered 1 collide when both are treated as episode 1. Established formats encode these in offset bands, which a consumer that does not know the convention reads as ordinary episodes.",
+      "capabilities": ["numbering_space", "range_scoped_coverage"],
+      "shape": {
+        "source": "One release with regular episodes, specials, a trailer and a credits sequence",
+        "target": "A provider carrying all of them in separate or banded sequences",
+        "relationship": "Each sequence is its own numbering space; numbers are only comparable within one"
+      },
+      "loss_if_unsupported": "The distinction between an episode and a trailer sharing a number. Clients fetch promotional material as content.",
+      "observed_in": ["essentially every series with promotional or bonus material"]
+    },
+    {
+      "id": "film-only-provider",
+      "title": "A provider that carries films only",
+      "breaks": "A television release has no counterpart, and a format with no way to say so retries the lookup forever or records a null that is indistinguishable from an unchecked field.",
+      "capabilities": ["known_absent"],
+      "shape": {
+        "source": "One television release",
+        "target": "A provider whose catalogue is films only",
+        "relationship": "A recorded absence with the reason, not a missing field"
+      },
+      "loss_if_unsupported": "The difference between checked-and-absent and never-checked. That difference is the whole value of recording it.",
+      "observed_in": ["film-cataloguing and film-rating services"]
+    },
+    {
+      "id": "marketing-unit-parts",
+      "title": "Platform marketing units that match nothing upstream",
+      "breaks": "A platform sells one broadcast cour as two parts with its own numbering. Neither part corresponds to an upstream release, and the platform numbering restarts at one.",
+      "capabilities": ["range_scoped_coverage", "non_zero_offset", "cardinality_merge"],
+      "shape": {
+        "source": "One upstream release",
+        "target": "A platform presenting it as two numbered parts",
+        "relationship": "Two edges from one release, each covering a range of it, each with its own target numbering"
+      },
+      "loss_if_unsupported": "The second part, and the ability to resolve a platform episode number back to an upstream one.",
+      "observed_in": ["streaming platforms splitting a season for release scheduling"]
+    },
+    {
+      "id": "compilation-belongs-to-two-series",
+      "title": "A recap film belongs to two series at once",
+      "breaks": "A model where a release has one parent must pick one, and the release becomes unreachable from the other.",
+      "capabilities": ["multi_series_membership", "range_scoped_coverage"],
+      "shape": {
+        "source": "One compilation film recapping a television season",
+        "target": "Providers listing it under the parent series, its own film line, or both",
+        "relationship": "One release, membership in two series, neither of which is the parent of truth"
+      },
+      "loss_if_unsupported": "One of the two memberships, chosen arbitrarily.",
+      "observed_in": ["recap and compilation films released between television seasons"]
+    }
+  ]
+}

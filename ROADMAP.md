@@ -5,24 +5,25 @@ absent. Order is not.
 
 ## Now
 
-**The conformance corpus.** A set of cases every correct implementation must handle, with
-expected outputs, published as tests. It is written before the schema rather than after,
-because these cases are the specification and discovering them later would invalidate
-everything built on top:
+**The conformance corpus.** Published in [`conformance/`](conformance/README.md): 18 cases
+any correct implementation has to handle, and the 13 capabilities they require. Written
+before the schema, because these cases are the specification and discovering them later
+would invalidate everything built on top.
 
-- A split cour: one TVDB season, two upstream entries, a non-zero offset on the second
-- A double-length episode: one source episode covering two target episodes
-- A split broadcast: two source episodes forming one target episode
-- A cour spanning two target seasons
-- Alternate cuts of one film
-- One story released as several theatrical parts plus a compilation
-- Two distinct works sharing a title, as a negative assertion
-- A season that never aired in a region, breaking downstream season numbering
-- Specials, trailers and credits, which occupy their own numbering sequences
+It holds no identifiers. Every case describes a shape, which keeps it free of any provenance
+question and means it tests whether a format can *express* a relationship rather than whether
+a particular row is right. Other projects can run their own data against it and find out
+which capabilities their format actually has.
 
 **The schema, derived from those cases.** Range-scoped edges with explicit cardinality, so a
 one-to-many episode relationship is representable rather than approximated. Numbering spaces.
 Negative assertions. Per-assertion identifiers and provenance.
+
+**A route for rightsholders.** [`schema/authorities.json`](schema/authorities.json) registers
+which organisations can make authoritative assertions, over what scope, and how they are
+verified. The registry is empty, which is honest: nobody has registered yet. The structure
+exists so that the first studio or licensor who wants to correct their own catalogue has
+somewhere to put it that is neither a scraped marketing page nor an unbounded override.
 
 **The invariant suite.** Structural rules the build enforces, so that dirty data is hard to
 commit rather than merely discouraged. Transitive closure that respects negative assertions.

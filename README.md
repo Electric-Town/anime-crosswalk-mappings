@@ -16,12 +16,17 @@ will be.
 
 | Path | Contents |
 |---|---|
+| [`conformance/`](conformance/README.md) | 18 cases any correct anime crosswalk has to handle, and the 13 capabilities they require. Structure only, no identifiers, so other projects can run their own data against it |
 | [`GLOSSARY.md`](GLOSSARY.md) | The vocabulary. Every term used in the schema and the code is defined here once |
 | [`schema/namespaces.json`](schema/namespaces.json) | Every provider namespace, its identifier format, its deep-link template, and its licence posture |
+| [`schema/authorities.json`](schema/authorities.json) | Which organisations can make authoritative assertions, over what scope, and how they are verified |
 | [`policy/resolution-policy.json`](policy/resolution-policy.json) | Versioned rules for resolving conflicting claims, so any resolution can be reproduced and audited |
 | [`ROADMAP.md`](ROADMAP.md) | What this project commits to supporting, and in what order |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How decisions are made, and what happens if maintainers become unreachable |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | What may and may not be contributed, and why |
+
+The conformance corpus comes before the schema on purpose. Its cases are the specification,
+and deriving the schema from them is cheaper than discovering them afterwards.
 
 Everything the README describes is in the repository and passing CI. That is enforced by
 [`tools/check_docs.py`](tools/check_docs.py), which fails the build if any path referenced in
@@ -77,7 +82,19 @@ two of them as agreement is counting one source twice.
 
 **CC0 at the root, not just on the output.** Sources whose terms are incompatible with a
 public-domain dedication are excluded at acquisition rather than laundered through a
-derivative. `schema/namespaces.json` records the posture for every namespace.
+derivative. [`schema/namespaces.json`](schema/namespaces.json) records the posture for every
+namespace.
+
+**Rightsholders have somewhere to speak, with bounded scope.** A studio, production
+committee, publisher or licensor holds catalogue facts nobody can derive from the outside:
+which works are one production, what a release was called on delivery, which cuts exist.
+Today those reach the ecosystem by being scraped off marketing pages, if at all.
+[`schema/authorities.json`](schema/authorities.json) gives them a place to be stated
+directly, and bounds the claim so that stating them does not become a way to overwrite
+everything else. An organisation is authoritative over its own catalogue. It is not
+authoritative about how a third party catalogued its work, because that is a claim about
+somebody else's database. An organisation absent from that registry carries no precedence
+whatever it claims about itself.
 
 ## Licence
 

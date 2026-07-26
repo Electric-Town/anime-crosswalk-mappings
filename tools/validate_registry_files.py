@@ -18,10 +18,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 NAMESPACES = ROOT / "schema" / "namespaces.json"
+AUTHORITIES = ROOT / "schema" / "authorities.json"
 POLICY = ROOT / "policy" / "resolution-policy.json"
 
 REQUIRED_NS_KEYS = {"label", "grain", "id_pattern", "url_template", "posture"}
+REQUIRED_AUTH_KEYS = {"id", "label", "role", "scopes", "verification", "licence"}
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
+KEBAB = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
 
 
 def load(path: Path, errors: list[str]) -> dict | None:
@@ -82,6 +85,82 @@ def check_namespaces(doc: dict, errors: list[str]) -> int:
     return len(namespaces)
 
 
+def check_authorities(doc: dict, errors: list[str]) -> int:
+    """The authority registry is what makes rank-1 precedence operable.
+
+    An unverifiable or unbounded authority entry is worse than none, because the
+    resolution policy would grant it precedence over everything else.
+    """
+    roles = set(doc.get("roles", {}))
+    scope_kinds = set(doc.get("scope_kinds", {}))
+    methods = set(doc.get("verification_methods", {}))
+
+    for name, values in (("roles", roles), ("scope_kinds", scope_kinds),
+                         ("verification_methods", methods)):
+        if not values:
+            errors.append(f"authorities.json: {name} is empty, so entries cannot be checked")
+
+    grant_form = doc.get("namespace_grant", {}).get("form", "")
+    if "<slug>" not in grant_form:
+        errors.append("authorities.json: namespace_grant.form has no <slug> placeholder")
+
+    authorities = doc.get("authorities")
+    if authorities is None:
+        errors.append("authorities.json: no authorities key")
+        return 0
+
+    seen: set[str] = set()
+    for entry in authorities:
+        aid = entry.get("id", "<unnamed>")
+        where = f"authorities.json: {aid}"
+
+        missing = REQUIRED_AUTH_KEYS - set(entry)
+        if missing:
+            errors.append(f"{where}: missing {', '.join(sorted(missing))}")
+            continue
+
+        if not KEBAB.match(entry["id"]):
+            errors.append(f"{where}: id is not kebab-case")
+        if entry["id"] in seen:
+            errors.append(f"{where}: duplicate id")
+        seen.add(entry["id"])
+
+        if entry["role"] not in roles:
+            errors.append(f"{where}: role {entry['role']!r} is not one of {', '.join(sorted(roles))}")
+
+        if not entry["scopes"]:
+            errors.append(
+                f"{where}: no scopes declared. An authority with unbounded scope would "
+                "outrank every other source everywhere, which is the thing this registry exists to prevent."
+            )
+        for scope in entry["scopes"]:
+            kind = scope.get("kind")
+            if kind not in scope_kinds:
+                errors.append(f"{where}: scope kind {kind!r} is not one of {', '.join(sorted(scope_kinds))}")
+            if kind == "own_catalogue" and not scope.get("namespace"):
+                errors.append(f"{where}: an own_catalogue scope must name the namespace it covers")
+
+        if entry["verification"].get("method") not in methods:
+            errors.append(
+                f"{where}: verification method {entry['verification'].get('method')!r} is not "
+                f"one of {', '.join(sorted(methods))}. An unverified authority carries no precedence."
+            )
+
+        if entry["licence"] != "CC0-1.0":
+            errors.append(
+                f"{where}: contributions must be CC0-1.0. An organisation that cannot "
+                "contribute on those terms can be cited but does not enter the dataset."
+            )
+
+        granted = entry.get("namespace")
+        if granted:
+            expected = grant_form.replace("<slug>", entry["id"])
+            if granted != expected:
+                errors.append(f"{where}: granted namespace should be {expected!r}, found {granted!r}")
+
+    return len(authorities)
+
+
 def check_policy(doc: dict, errors: list[str]) -> int:
     version = doc.get("policy_version", "")
     if not SEMVER.match(version):
@@ -133,6 +212,9 @@ def main() -> int:
     ns_doc = load(NAMESPACES, errors)
     ns_count = check_namespaces(ns_doc, errors) if ns_doc else 0
 
+    auth_doc = load(AUTHORITIES, errors)
+    auth_count = check_authorities(auth_doc, errors) if auth_doc else 0
+
     policy_doc = load(POLICY, errors)
     rule_count = check_policy(policy_doc, errors) if policy_doc else 0
 
@@ -142,7 +224,10 @@ def main() -> int:
             print(f"  {err}")
         return 1
 
-    print(f"registry: {ns_count} namespaces, {rule_count} precedence rules, all consistent")
+    print(
+        f"registry: {ns_count} namespaces, {auth_count} authorities, "
+        f"{rule_count} precedence rules, all consistent"
+    )
     return 0
 
 
