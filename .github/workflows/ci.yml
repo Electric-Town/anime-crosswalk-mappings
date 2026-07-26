@@ -33,11 +33,17 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Install pinned dev dependencies
+        run: python3 -m pip install -r requirements-dev.txt
+
       - name: Namespace registry, authority registry and resolution policy are consistent
         run: python3 tools/validate_registry_files.py
 
       - name: Conformance corpus is well formed and identifier-free
         run: python3 tools/validate_conformance.py
+
+      - name: Schema is valid, enforces the fixtures, and covers every capability
+        run: python3 tools/validate_schema.py
 
       - name: Every path the documentation references exists
         run: python3 tools/check_docs.py

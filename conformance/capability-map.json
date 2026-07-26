@@ -1,0 +1,62 @@
+{
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/conformance/capability-map.json",
+  "version": "1.0.0",
+  "description": "Which schema construct expresses each conformance capability. Checked in CI: every capability the corpus declares has an entry, every entry resolves to a real location in the schema, and every capability has a fixture that exercises it. This is what makes 'the schema is derived from the conformance corpus' a checkable statement rather than a claim in a README.",
+
+  "schema": "schema/release.schema.json",
+
+  "map": {
+    "range_scoped_coverage": {
+      "pointer": "/$defs/coverage_segment/properties/source_start",
+      "note": "A segment states the span of the release it covers, so an edge need not apply to the whole release."
+    },
+    "non_zero_offset": {
+      "pointer": "/$defs/coverage_segment/properties/offset",
+      "note": "target = source + offset, within a segment."
+    },
+    "dual_numbering": {
+      "pointer": "/$defs/coverage_segment/properties/mode",
+      "note": "Season and absolute are separate modes, so a target exposing both diverging sequences gets one segment for each rather than a choice between them."
+    },
+    "cross_boundary_span": {
+      "pointer": "/$defs/assertion/properties/coverage",
+      "note": "Coverage is an array. A release crossing a target season boundary carries one segment per season, each with its own offset. A single block could express only one of them."
+    },
+    "discontinuous_coverage": {
+      "pointer": "/$defs/assertion/properties/coverage",
+      "note": "Same array. Non-adjacent ranges are separate segments, which is what regional episode skips and arc-split long-runners require."
+    },
+    "cardinality_expand": {
+      "pointer": "/$defs/episode_link/allOf/1",
+      "note": "kind=expands, constrained to one source and two or more targets. A constant offset is injective and cannot express this at all."
+    },
+    "cardinality_merge": {
+      "pointer": "/$defs/episode_link/allOf/2",
+      "note": "kind=merges, constrained to two or more sources and exactly one target. The inverse of expands and strictly harder, because inverting a scalar map gives one key two values."
+    },
+    "numbering_space": {
+      "pointer": "/$defs/coverage_segment/properties/numbering_space",
+      "note": "Specials, trailers, credits and parodies are separate sequences. Numbers are comparable only within one, so a trailer numbered 1 and an episode numbered 1 do not collide."
+    },
+    "negative_assertion": {
+      "pointer": "/$defs/assertion/properties/reasoning",
+      "note": "relation=not_same_as requires reasoning. Storing the refutation is what stops an automated pass re-deriving the same bad merge."
+    },
+    "alternate_cut": {
+      "pointer": "/$defs/assertion/properties/relation",
+      "note": "alternate_cut_of links sibling releases that are the same work in a different edit, without merging them into one entity."
+    },
+    "multi_series_membership": {
+      "pointer": "/properties/series",
+      "note": "A list, never a single parent. A recap film belongs to its own line and to the parent series at once."
+    },
+    "known_absent": {
+      "pointer": "/properties/known_absent",
+      "note": "A checked absence with a reason, distinct from an unchecked field. That distinction is the whole value of recording it."
+    },
+    "ordering_variance": {
+      "pointer": "/$defs/coverage_segment/properties/ordering",
+      "note": "Where broadcast, chronological and intended orders differ there is no single correct sequence, so the ordering a mapping is correct relative to is part of the assertion."
+    }
+  }
+}
