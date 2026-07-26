@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/schema/namespaces.json",
+  "version": "1.0.0",
+  "description": "Registry of external identifier namespaces. Each entry records the identifier format, a deep-link template for resolution, the grain the provider models, and the licence posture governing how identifiers in that namespace may enter this dataset. Posture attaches to the acquisition route, not to the number: the same identifier may be admissible via one route and inadmissible via another.",
+  "posture_values": {
+    "open": "Identifiers and cross-references may be acquired directly from this provider.",
+    "identifiers_only": "Identifiers may be acquired directly. Descriptive fields may not be ingested under any circumstances.",
+    "indirect_only": "Identifiers may not be acquired from this provider directly. They are admissible only via the routes listed in allowed_routes.",
+    "excluded": "No acquisition from this provider by any route."
+  },
+  "namespaces": {
+    "mal": {
+      "label": "MyAnimeList",
+      "grain": "release",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://myanimelist.net/anime/{id}",
+      "posture": "identifiers_only",
+      "notes": "Proprietary. Identifiers are referential facts; descriptive fields are not ingested."
+    },
+    "anilist": {
+      "label": "AniList",
+      "grain": "release",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://anilist.co/anime/{id}",
+      "posture": "identifiers_only",
+      "notes": "Terms permit edge extraction. Mirroring the metadata corpus is out of scope and out of bounds."
+    },
+    "kitsu": {
+      "label": "Kitsu",
+      "grain": "release",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://kitsu.app/anime/{id}",
+      "posture": "open",
+      "notes": "Publishes a first-class cross-reference endpoint. A direct edge source requiring no inference."
+    },
+    "anidb": {
+      "label": "AniDB",
+      "grain": "release",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://anidb.net/anime/{id}",
+      "posture": "indirect_only",
+      "allowed_routes": ["wikidata:P5646", "kitsu:mappings", "anilist:external_links"],
+      "notes": "Content is CC BY-NC-SA 4.0, which explicitly covers sui generis database rights. The NonCommercial term is incompatible with a CC0 output, so systematic extraction is excluded at source. Identifiers observed in a permissively licensed third-party dataset are admissible; the route is recorded per assertion in id_source and enforced by the provenance gate."
+    },
+    "tvdb": {
+      "label": "TheTVDB",
+      "grain": "series",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://thetvdb.com/dereferrer/series/{id}",
+      "posture": "identifiers_only",
+      "numbering": ["season", "absolute"],
+      "notes": "Exposes both season and absolute numbering, and they diverge. Both are recorded, because that divergence is the single most common cause of a media server fetching the wrong episode."
+    },
+    "tmdb": {
+      "label": "The Movie Database",
+      "grain": "series_or_film",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://www.themoviedb.org/tv/{id}",
+      "url_template_film": "https://www.themoviedb.org/movie/{id}",
+      "posture": "identifiers_only",
+      "notes": "Separate television and film identifier spaces which can collide numerically, so grain is required alongside the identifier. Attribution obligations are computed at build time from id_source and emitted with the release."
+    },
+    "imdb": {
+      "label": "IMDb",
+      "grain": "series_or_film",
+      "id_pattern": "^tt[0-9]{7,8}$",
+      "url_template": "https://www.imdb.com/title/{id}/",
+      "posture": "identifiers_only",
+      "notes": "Their non-commercial dataset terms prohibit republishing their fields into a derived database. Identifiers are cross-references only. Zero fields are ingested."
+    },
+    "trakt": {
+      "label": "Trakt",
+      "grain": "series",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://trakt.tv/shows/{id}",
+      "posture": "identifiers_only",
+      "notes": "Useful for corroboration because one lookup returns several namespaces at once. Proprietary; used to verify, never to populate wholesale."
+    },
+    "wikidata": {
+      "label": "Wikidata",
+      "grain": "work",
+      "id_pattern": "^Q[0-9]+$",
+      "url_template": "https://www.wikidata.org/wiki/{id}",
+      "posture": "open",
+      "notes": "CC0. The only unambiguously clean bulk source, and the admissible route for identifiers whose home provider is indirect_only. Coverage is partial and its items are known to both over-aggregate and over-segment, so records need a grain check before ingest."
+    },
+    "letterboxd": {
+      "label": "Letterboxd",
+      "grain": "film",
+      "id_pattern": "^[a-z0-9-]+$",
+      "url_template": "https://letterboxd.com/film/{id}/",
+      "posture": "indirect_only",
+      "allowed_routes": ["wikidata:P6127"],
+      "notes": "Films only, so television releases carry a known_absent record rather than a null mapping. No usable public API; never scraped."
+    },
+    "rottentomatoes": {
+      "label": "Rotten Tomatoes",
+      "grain": "series_or_film",
+      "id_pattern": "^(m|tv)/[a-z0-9_]+$",
+      "url_template": "https://www.rottentomatoes.com/{id}",
+      "posture": "indirect_only",
+      "allowed_routes": ["wikidata:P1258"],
+      "notes": "No public API and terms hostile to scraping. Identifiers via Wikidata only."
+    },
+    "netflix": {
+      "label": "Netflix",
+      "grain": "catalogue_entry",
+      "id_pattern": "^[0-9]+$",
+      "url_template": "https://www.netflix.com/title/{id}",
+      "posture": "indirect_only",
+      "allowed_routes": ["wikidata:P1874", "anilist:external_links"],
+      "regional": true,
+      "notes": "A catalogue identifier is identity and belongs here. Whether a title is streamable in a territory today is an observation and does not. Marketing units such as 'Season 1 Part 2' frequently match nothing upstream and are mapped by range, not by name."
+    },
+    "eidr": {
+      "label": "Entertainment Identifier Registry",
+      "grain": "work_or_edit",
+      "id_pattern": "^10\\.5240/([0-9A-Z]{4}-){5}[0-9A-Z]$",
+      "url_template": "https://ui.eidr.org/view/content?id={id}",
+      "posture": "open",
+      "notes": "Resolution is free and unrestricted for any lawful purpose. Anime is badly under-registered, so this namespace is expected to stay sparse. Carrying it costs nothing and is what makes later interoperability with the wider distribution supply chain possible."
+    }
+  }
+}

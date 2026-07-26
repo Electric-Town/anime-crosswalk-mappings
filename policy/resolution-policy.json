@@ -1,0 +1,56 @@
+{
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/policy/resolution-policy.json",
+  "policy_version": "1.0.0",
+  "description": "Rules for resolving conflicting claims. Versioned and published so that any consumer can reproduce a resolution and audit why one value won. Every resolved conflict records the deciding policy version in resolved_by, so a later policy change does not silently rewrite the reasoning behind data already published.",
+
+  "precedence": [
+    {
+      "rank": 1,
+      "rule": "official-namespace-scoped",
+      "applies_when": "The source is a verified official account AND the claim concerns identifiers or episode numbering WITHIN that source's own namespace.",
+      "requires": "Verification of the claiming organisation. An unverified claim of officiality carries no precedence at all, because otherwise forging one is the cheapest way to poison the graph.",
+      "note": "Authority is namespace-scoped. A streaming platform is authoritative about its own catalogue identifiers and its own episode numbering. It is not authoritative about which MyAnimeList entry corresponds, because that is a claim about somebody else's database. Outside its own namespace an official source ranks as ordinary evidence."
+    },
+    {
+      "rank": 2,
+      "rule": "human-verified",
+      "applies_when": "A person opened both sources, checked, and recorded the observed source and retrieval date alongside themselves."
+    },
+    {
+      "rank": 3,
+      "rule": "corroborated-disjoint-roots",
+      "applies_when": "Two sources whose derivation roots are provably disjoint agree.",
+      "note": "Computed against the declared derivation graph, never asserted. Fails closed when a source's lineage is undeclared, because treating an unknown source as independent is how two copies of one upstream become false agreement."
+    },
+    {
+      "rank": 4,
+      "rule": "recency",
+      "applies_when": "No higher rule applies. The more recent assertion wins.",
+      "note": "Rank alone is not sufficient. A stale official assertion does not outrank a current verified correction; see the appeal rule below."
+    }
+  ],
+
+  "rules": {
+    "losing_claims_retained": true,
+    "note_on_retention": "Losing claims stay in conflicts[]. Overwriting without a record removes the ability to notice that a source is systematically wrong.",
+    "two_officials_disagree": "disputed",
+    "note_on_disputes": "Publish both, rank neither. A disputed pair is exempt from the one-exact-mapping-per-namespace rule, because the disagreement is the fact being recorded.",
+    "appeal": "A human-verified correction may outrank a stale assertion from an authoritative source. The disagreement is recorded, never erased.",
+    "rollback_unit": "contributor",
+    "note_on_rollback": "Where a contributor is found to have submitted systematically wrong data, their assertions can be identified and reverted as a set."
+  },
+
+  "publication": {
+    "artifact_declares_contents": true,
+    "note_on_declaration": "Every artifact declares which evidence classes it carries and contains nothing outside that declaration. An artifact that quietly includes a class it does not declare is worse than one that excludes it, because a consumer cannot tell.",
+    "accepted_artifact_includes": ["asserted", "verified", "corroborated"],
+    "full_artifact_includes": ["asserted", "verified", "corroborated", "inferred", "candidate", "disputed"],
+    "vendoring_default": "accepted",
+    "note_on_vendoring": "Consumers vendor a copy rather than calling a service, so corrections cannot be pushed and precision at publication time matters more than it would for a hosted dataset. Known-bad assertions are withdrawn by identifier through the revocation feed."
+  },
+
+  "evidence_class_ordering": {
+    "ordered": false,
+    "note": "These are categories of backing, not a ranked scale. Consumers must not treat asserted, verified and corroborated as a ladder. Precedence between conflicting claims is decided by the precedence rules above, which consider the claim and its scope, not by sorting the class names."
+  }
+}
