@@ -34,7 +34,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install pinned dev dependencies
-        run: python3 -m pip install --require-hashes=false -r requirements-dev.txt
+        run: python3 -m pip install -r requirements-dev.txt
 
       - name: Namespace registry, authority registry and resolution policy are consistent
         run: python3 tools/validate_registry_files.py
