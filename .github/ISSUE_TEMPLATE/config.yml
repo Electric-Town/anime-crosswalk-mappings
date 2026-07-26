@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security or integrity problem
+    url: https://github.com/Electric-Town/anime-crosswalk-mappings/security/advisories/new
+    about: Report privately. Artifact integrity, provenance bypass, identifier integrity, supply chain. See SECURITY.md.
+  - name: Conduct concern
+    url: https://github.com/Electric-Town/anime-crosswalk-mappings/security/advisories/new
+    about: Reports reach all maintainers privately. See CODE_OF_CONDUCT.md.

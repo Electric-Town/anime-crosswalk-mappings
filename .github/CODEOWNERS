@@ -1,0 +1,19 @@
+# Every pull request is reviewed by a maintainer who did not write it, including
+# pull requests authored by maintainers. See GOVERNANCE.md.
+
+*                           @Electric-Town/maintainers
+
+# The vocabulary, the schema, the namespace registry and the resolution policy are
+# what every other rule depends on. Changes here are decided in a public issue with
+# a comment period, not in review. See GOVERNANCE.md.
+
+/GLOSSARY.md                @Electric-Town/maintainers
+/schema/                    @Electric-Town/maintainers
+/policy/                    @Electric-Town/maintainers
+/GOVERNANCE.md              @Electric-Town/maintainers
+
+# Maintainers who also maintain a downstream or competing project disclose it here
+# and recuse themselves from decisions that would advantage it.
+#
+# Disclosures:
+#   (none recorded)

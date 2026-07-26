@@ -1,0 +1,17 @@
+# Build output. Artifacts are published to releases, never committed, so that the
+# repository stays the source of truth and diffs stay reviewable.
+/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
