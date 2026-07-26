@@ -15,9 +15,28 @@ question and means it tests whether a format can *express* a relationship rather
 a particular row is right. Other projects can run their own data against it and find out
 which capabilities their format actually has.
 
-**The schema, derived from those cases.** Range-scoped edges with explicit cardinality, so a
-one-to-many episode relationship is representable rather than approximated. Numbering spaces.
-Negative assertions. Per-assertion identifiers and provenance.
+**The schema, derived from those cases.** Published in
+[`schema/release.schema.json`](schema/release.schema.json). Coverage is a list of segments
+rather than one block, so a release crossing a target season boundary or mapping to several
+non-adjacent ranges is representable. Explicit episode links carry the cardinality an offset
+cannot: one source episode covering two targets, or two forming one. Numbering spaces keep a
+trailer numbered 1 from colliding with an episode numbered 1. Negative assertions require
+reasoning. Every mapping carries its own identifier, so a single wrong edge can be withdrawn
+without touching the rest of the release.
+
+The derivation is checked, not asserted:
+[`conformance/capability-map.json`](conformance/capability-map.json) records which construct
+expresses each capability, and CI fails if one is missing, points at nothing, or has no
+worked record exercising it.
+
+Range boundaries are named `source_start` and `source_end` rather than `start` and `end`,
+because an earlier draft used the short names and two governing documents read them in
+opposite coordinate spaces without any check being able to tell the readings apart.
+
+**Still to come here:** the Episode and Series entities, and the invariants that operate
+across records rather than within one. JSON Schema validates a record in isolation; it cannot
+see that two releases claim the same target span, that a redirect chain cycles, or that two
+sources counted as independent agreement share a derivation root.
 
 **A route for rightsholders.** [`schema/authorities.json`](schema/authorities.json) registers
 which organisations can make authoritative assertions, over what scope, and how they are

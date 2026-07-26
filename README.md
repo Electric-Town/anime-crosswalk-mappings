@@ -17,6 +17,9 @@ will be.
 | Path | Contents |
 |---|---|
 | [`conformance/`](conformance/README.md) | 18 cases any correct anime crosswalk has to handle, and the 13 capabilities they require. Structure only, no identifiers, so other projects can run their own data against it |
+| [`schema/release.schema.json`](schema/release.schema.json) | The Release entity, derived from those cases. JSON Schema 2020-12 |
+| [`conformance/capability-map.json`](conformance/capability-map.json) | Which schema construct expresses each capability. Checked in CI, so "derived from the corpus" is falsifiable rather than asserted |
+| [`conformance/fixtures.json`](conformance/fixtures.json) | Worked records for every capability, and records that must be rejected |
 | [`GLOSSARY.md`](GLOSSARY.md) | The vocabulary. Every term used in the schema and the code is defined here once |
 | [`schema/namespaces.json`](schema/namespaces.json) | Every provider namespace, its identifier format, its deep-link template, and its licence posture |
 | [`schema/authorities.json`](schema/authorities.json) | Which organisations can make authoritative assertions, over what scope, and how they are verified |
@@ -28,9 +31,28 @@ will be.
 The conformance corpus comes before the schema on purpose. Its cases are the specification,
 and deriving the schema from them is cheaper than discovering them afterwards.
 
+That derivation is checked rather than claimed. CI fails if a capability the corpus declares
+has no construct in the schema, if a construct it names does not exist, or if no worked
+record exercises it. A schema that accepts everything is easy to write and useless, so eight
+records that must be rejected are validated alongside the six that must pass.
+
 Everything the README describes is in the repository and passing CI. That is enforced by
 [`tools/check_docs.py`](tools/check_docs.py), which fails the build if any path referenced in
 any Markdown file does not exist.
+
+## Build
+
+Nothing is required to *consume* the published data. It is plain JSON.
+
+To run the checks:
+
+```bash
+pip install -r requirements-dev.txt
+python3 tools/validate_registry_files.py    # namespaces, authorities, resolution policy
+python3 tools/validate_conformance.py       # corpus well formed, no identifiers
+python3 tools/validate_schema.py            # schema valid, fixtures enforced, capabilities covered
+python3 tools/check_docs.py                 # every documented path exists
+```
 
 ## The problem
 
