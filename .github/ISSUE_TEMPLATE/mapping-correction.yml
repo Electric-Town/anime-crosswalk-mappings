@@ -1,0 +1,68 @@
+name: Mapping correction
+description: A mapping is wrong, missing, or points at the wrong thing
+labels: ["correction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most useful kind of issue you can open. A wrong offset that reaches a
+        media server is visible to every user of that server.
+
+        You do not need to know the schema to file this. Tell us what you expected and what
+        you got, and we will work out where the graph is wrong.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+      description: The correct mapping, as best you know it.
+      placeholder: |
+        MyAnimeList 38524 (Attack on Titan Season 3 Part 2, 10 episodes) should map to
+        TVDB series 267440, season 3, episodes 13 to 22.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happens instead
+      description: What the data currently says, or what your client did with it.
+      placeholder: |
+        It maps to season 3 episodes 1 to 10, so my media server matched the wrong
+        episodes and the titles are twelve off.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Where you checked
+      description: |
+        The part that gets reviewed. Links and retrieval dates, not recollections. If two
+        sources disagree, say so; a disagreement is itself worth recording.
+      placeholder: |
+        https://myanimelist.net/anime/38524 retrieved 2026-07-26, 10 episodes
+        https://thetvdb.com/dereferrer/series/267440 retrieved 2026-07-26, season 3 has 22 episodes
+    validations:
+      required: true
+
+  - type: input
+    id: assertion
+    attributes:
+      label: Assertion identifier
+      description: If you have it from the data, it saves us finding it. Leave blank if not.
+
+  - type: input
+    id: release
+    attributes:
+      label: Which release you are using
+      description: The dataset release you vendored, if you are a downstream consumer.
+      placeholder: "2026-30"
+
+  - type: checkboxes
+    id: sourcing
+    attributes:
+      label: Sourcing
+      options:
+        - label: This does not come from a source the namespace registry marks `indirect_only` or `excluded`
+          required: true

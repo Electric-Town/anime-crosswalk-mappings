@@ -1,0 +1,62 @@
+name: Schema, namespace or policy change
+description: Propose a change to the vocabulary, the schema, a namespace posture, or the resolution policy
+labels: ["schema"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These are decided in public with a comment period, not in review, because everything
+        else depends on them. See `GOVERNANCE.md`.
+
+        If you are proposing a new source, the licensing question usually matters more than
+        the technical one. Answer it first.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: What are you proposing to change
+      options:
+        - The vocabulary (GLOSSARY.md)
+        - The schema
+        - A namespace entry or its licence posture
+        - The resolution policy
+        - Governance
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The change
+      description: What should be different, concretely.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: What breaks without it
+      description: |
+        A case the current model cannot express, or expresses wrongly. Real examples carry
+        far more weight than hypotheticals here, because the schema was derived from cases
+        rather than from first principles.
+    validations:
+      required: true
+
+  - type: textarea
+    id: licensing
+    attributes:
+      label: Licensing, if this adds or changes a source
+      description: |
+        Under what terms is the data published? Does the source derive from another source,
+        and if so which? Corroboration is computed over derivation roots, so undeclared
+        lineage fails closed.
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Effect on published data
+      description: |
+        Does this change the meaning of anything already published? Identifiers are permanent
+        and consumers hold copies, so a change that reinterprets existing data is a different
+        proposition from one that adds a field.
