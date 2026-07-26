@@ -1,0 +1,600 @@
+{
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/conformance/fixtures.json",
+  "version": "1.0.0",
+  "description": "Worked records exercising each capability, plus records that must be rejected. Validated against schema/release.schema.json in CI. Identifiers here are structural placeholders, not claims about real works: the fixtures test that the schema can express a shape, and a fixture asserting a real mapping without evidence would be exactly the sort of unsourced claim this project exists to avoid.",
+  "note_on_identifiers": "ULIDs below are syntactically valid and semantically meaningless. External ids are placeholder digits. Nothing here should be read as an assertion about any work.",
+  "valid": [
+    {
+      "exercises": [
+        "range_scoped_coverage",
+        "non_zero_offset",
+        "dual_numbering"
+      ],
+      "why": "A split cour: the second release covers the back half of one target season, and the same episodes carry a diverging absolute sequence.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder Release, Second Part",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "episode_count": 10,
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+            "ns": "example-series-db",
+            "id": "100000",
+            "entity": "series",
+            "relation": "subset_of",
+            "coverage": [
+              {
+                "mode": "season",
+                "season": 3,
+                "source_start": 1,
+                "source_end": 10,
+                "offset": 12
+              },
+              {
+                "mode": "absolute",
+                "source_start": 1,
+                "source_end": 10,
+                "offset": 49
+              }
+            ],
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "example-series-db series 100000, season listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "exercises": [
+        "cross_boundary_span",
+        "discontinuous_coverage"
+      ],
+      "why": "One release spanning two target seasons. Two segments, two offsets. A single block could carry only one of them.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder Release Crossing A Season Boundary",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "episode_count": 26,
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+            "ns": "example-series-db",
+            "id": "100001",
+            "entity": "series",
+            "relation": "subset_of",
+            "coverage": [
+              {
+                "mode": "season",
+                "season": 1,
+                "source_start": 1,
+                "source_end": 13,
+                "offset": 0
+              },
+              {
+                "mode": "season",
+                "season": 2,
+                "source_start": 14,
+                "source_end": 26,
+                "offset": -13
+              }
+            ],
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "derived_air_dates",
+                "observed_source": "air date alignment, 26 of 26 exact",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "exercises": [
+        "cardinality_expand",
+        "cardinality_merge"
+      ],
+      "why": "A double-length premiere split by the target, and a two-part story the target lists as one episode. Neither is expressible with an offset.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder Release With Non Affine Episodes",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "episode_count": 12,
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+            "ns": "example-series-db",
+            "id": "100002",
+            "entity": "series",
+            "relation": "subset_of",
+            "coverage": [
+              {
+                "mode": "season",
+                "season": 1,
+                "source_start": 1,
+                "source_end": 12,
+                "offset": 0
+              }
+            ],
+            "episode_links": [
+              {
+                "from": [
+                  1
+                ],
+                "to": [
+                  1,
+                  2
+                ],
+                "kind": "expands"
+              },
+              {
+                "from": [
+                  5,
+                  6
+                ],
+                "to": [
+                  6
+                ],
+                "kind": "merges"
+              },
+              {
+                "from": [
+                  12
+                ],
+                "to": [],
+                "kind": "absent",
+                "reason": "Finale withheld from this target's catalogue"
+              }
+            ],
+            "evidence_class": "verified",
+            "evidence": [
+              {
+                "method": "human_verified",
+                "observed_source": "example-series-db series 100002 episode list",
+                "reviewer": "gh:example",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "exercises": [
+        "numbering_space",
+        "ordering_variance"
+      ],
+      "why": "Trailers occupy their own sequence, and the mapping is correct relative to a stated ordering rather than an assumed one.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder Release With Promotional Material",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "episode_count": 13,
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB3",
+            "ns": "example-series-db",
+            "id": "100003",
+            "entity": "series",
+            "relation": "subset_of",
+            "coverage": [
+              {
+                "mode": "season",
+                "season": 1,
+                "numbering_space": "regular",
+                "ordering": "chronological",
+                "source_start": 1,
+                "source_end": 13,
+                "offset": 0
+              },
+              {
+                "mode": "season",
+                "season": 0,
+                "numbering_space": "trailer",
+                "source_start": 1,
+                "source_end": 2,
+                "offset": 200
+              }
+            ],
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "example-series-db specials listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "exercises": [
+        "negative_assertion",
+        "alternate_cut",
+        "multi_series_membership",
+        "known_absent"
+      ],
+      "why": "A refutation with reasoning, a sibling cut, membership in two series at once, and a checked absence.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder Compilation Film",
+          "language": "ja-Latn"
+        },
+        "type": "MOVIE",
+        "episode_count": 1,
+        "series": [
+          {
+            "id": "ser_01ARZ3NDEKTSV4RRFFQ69G5FC0",
+            "ordinal": 1
+          },
+          {
+            "id": "ser_01ARZ3NDEKTSV4RRFFQ69G5FC1",
+            "ordinal": 3.5
+          }
+        ],
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+            "ns": "example-series-db",
+            "id": "100004",
+            "entity": "film",
+            "relation": "not_same_as",
+            "reasoning": "Shares a title with the television release it recaps, and is a separate work with its own runtime and delivery.",
+            "evidence_class": "verified",
+            "evidence": [
+              {
+                "method": "human_verified",
+                "observed_source": "example-series-db entries 100004 and 100005 compared",
+                "reviewer": "gh:example",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          },
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+            "ns": "example-series-db",
+            "id": "100006",
+            "entity": "film",
+            "relation": "alternate_cut_of",
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "example-series-db release listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "known_absent": [
+          {
+            "ns": "example-film-only-db",
+            "reason": "Catalogue carries films only; the parent television release has no counterpart",
+            "checked": "2026-07-26"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "exercises": [
+        "range_scoped_coverage"
+      ],
+      "why": "A tombstone. Retired identifiers are never deleted, so anything ever published continues to resolve.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+        "schema_version": "1.0.0",
+        "status": "merged",
+        "redirect_to": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "primary_title": {
+          "text": "Placeholder Retired Release",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [],
+        "updated": "2026-07-26"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "must_reject": "A tombstone with no redirect. An identifier that stops resolving breaks every consumer holding it.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+        "schema_version": "1.0.0",
+        "status": "merged",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "subset_of with no coverage. This is the lossy shape the project exists to replace: it records that a target is involved while discarding which part maps to which.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FB8",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB9",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "subset_of",
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "example-series-db entry 1, episode listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "not_same_as with no reasoning. An unexplained refutation cannot stop the merge being re-derived, because nothing records why it was wrong.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBA",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "not_same_as",
+            "evidence_class": "verified",
+            "evidence": [
+              {
+                "method": "human_verified",
+                "observed_source": "example-series-db entry 1, episode listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "expands with a single target. If one source episode maps to one target it is not an expansion, and accepting it would let a scalar relationship masquerade as cardinality.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBD",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "subset_of",
+            "coverage": [
+              {
+                "mode": "flat",
+                "source_start": 1,
+                "source_end": 12,
+                "offset": 0
+              }
+            ],
+            "episode_links": [
+              {
+                "from": [
+                  1
+                ],
+                "to": [
+                  1
+                ],
+                "kind": "expands"
+              }
+            ],
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "example-series-db entry 1, episode listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "An evidence record with no observed source. A reviewer name identifies a curator, not a fact, and an assertion nobody can re-check is not evidence.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "exact",
+            "evidence_class": "verified",
+            "evidence": [
+              {
+                "method": "human_verified",
+                "reviewer": "gh:example",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "evidence_class asserted with no authority named. Rightsholder precedence that cannot be attributed to a registered organisation is forgeable, and forging it would be the cheapest way to poison the graph.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "exact",
+            "evidence_class": "asserted",
+            "evidence": [
+              {
+                "method": "rightsholder_asserted",
+                "observed_source": "delivery manifest",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "authority:example"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "A mapping with no id_source. Licence posture attaches to the route an identifier arrived by, so an identifier with no recorded route cannot be checked against the namespace registry at all.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "exact",
+            "evidence_class": "inferred",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "example-series-db entry 1, episode listing",
+                "at": "2026-07-26"
+              }
+            ]
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "must_reject": "A resolved conflict with no deciding policy version. Without it a resolution cannot be reproduced, and a later policy change silently rewrites the reasoning behind data already published.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBM",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [],
+        "conflicts": [
+          {
+            "field": "mappings.example-series-db",
+            "claims": [
+              {
+                "value": "1",
+                "by": "source-a",
+                "at": "2026-07-01"
+              },
+              {
+                "value": "2",
+                "by": "source-b",
+                "at": "2026-07-02"
+              }
+            ],
+            "status": "resolved"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    }
+  ]
+}

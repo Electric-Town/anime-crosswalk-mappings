@@ -1,0 +1,8 @@
+# Development and CI only. Nothing here is needed to consume the published data,
+# which is plain JSON and requires no dependencies at all.
+#
+# Pinned rather than floated: schema validation decides what enters the dataset,
+# so a behaviour change in the validator arriving silently on a Tuesday is not
+# something this project should absorb without noticing.
+
+jsonschema==4.26.0

@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/schema/release.schema.json",
+  "title": "Release",
+  "description": "The primary entity: a broadcast unit at the grain upstream trackers use. A cour, an OVA, an ONA, a film, a special. A film is a Release with one episode. Derived from conformance/cases.json; every construct here exists because a case requires it, and conformance/capability-map.json records which.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "schema_version", "status", "primary_title", "type", "mappings", "updated"],
+
+  "properties": {
+    "id": { "$ref": "#/$defs/release_id" },
+    "schema_version": { "$ref": "#/$defs/schema_version" },
+
+    "status": {
+      "description": "A retired release is never deleted. It becomes a tombstone carrying a redirect, so any identifier ever published resolves forever.",
+      "enum": ["active", "merged", "superseded"]
+    },
+    "redirect_to": {
+      "$ref": "#/$defs/release_id",
+      "description": "Required when status is not active. Chains must terminate and must not cycle."
+    },
+    "split_from": {
+      "$ref": "#/$defs/release_id",
+      "description": "Set on releases minted by splitting an earlier one. The original is tombstoned."
+    },
+
+    "primary_title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "language"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "language": { "type": "string", "description": "BCP 47." }
+      },
+      "description": "Held for disambiguation during matching. Not descriptive metadata for redistribution; providers remain the authority on their own."
+    },
+
+    "type": { "enum": ["TV", "OVA", "ONA", "MOVIE", "SPECIAL"] },
+    "episode_count": { "type": "integer", "minimum": 0 },
+    "first_aired": { "$ref": "#/$defs/date" },
+    "last_aired": { "$ref": "#/$defs/date" },
+
+    "series": {
+      "description": "Membership in zero or more Series. A grouping, not a parent of truth. Recap and compilation films routinely belong to two, so this is a list and never a single parent.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^ser_[0-9A-HJKMNP-TV-Z]{26}$" },
+          "ordinal": { "type": "number", "description": "Position within that series, where one exists." }
+        }
+      }
+    },
+
+    "mappings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assertion" }
+    },
+
+    "known_absent": {
+      "description": "A checked absence, with the reason. Distinct from an unchecked field, and that distinction is the entire value of recording it: it stops the same fruitless lookup being retried forever.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ns", "reason", "checked"],
+        "properties": {
+          "ns": { "type": "string" },
+          "reason": { "type": "string", "minLength": 10 },
+          "checked": { "$ref": "#/$defs/date" }
+        }
+      }
+    },
+
+    "conflicts": {
+      "description": "Conflicting claims are retained, never silently overwritten. Overwriting removes the ability to notice that a source is systematically wrong.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "claims", "status"],
+        "properties": {
+          "field": { "type": "string" },
+          "claims": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value", "by", "at"],
+              "properties": {
+                "value": {},
+                "by": { "type": "string" },
+                "at": { "$ref": "#/$defs/date" }
+              }
+            }
+          },
+          "status": { "enum": ["open", "resolved", "disputed"] },
+          "resolved_by": {
+            "type": "string",
+            "pattern": "^policy-v\\d+\\.\\d+\\.\\d+/[a-z-]+$",
+            "description": "Which policy version and rule decided it. Required when status is resolved, so a resolution can be reproduced and a later policy change does not silently rewrite the reasoning behind published data."
+          },
+          "note": { "type": "string" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "status": { "const": "resolved" } }, "required": ["status"] },
+            "then": { "required": ["resolved_by"] }
+          }
+        ]
+      }
+    },
+
+    "updated": { "$ref": "#/$defs/date" }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "enum": ["merged", "superseded"] } },
+        "required": ["status"]
+      },
+      "then": { "required": ["redirect_to"] }
+    }
+  ],
+
+  "$defs": {
+    "release_id": {
+      "type": "string",
+      "pattern": "^rel_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "ULID in Crockford base32. Opaque: never parsed, never reused, never deleted. Minted once when a release first enters the registry and committed. The build never mints."
+    },
+
+    "assertion_id": {
+      "type": "string",
+      "pattern": "^asr_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Stable identifier for one mapping claim. Revocation operates on these: a single wrong edge can be withdrawn without touching the rest of the release."
+    },
+
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "date": { "type": "string", "format": "date", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+
+    "numbering_space": {
+      "description": "Which sequence a number belongs to. A trailer numbered 1 and an episode numbered 1 are different things, and numbers are only comparable within one space.",
+      "enum": ["regular", "special", "trailer", "credit", "parody", "other"],
+      "default": "regular"
+    },
+
+    "ordering": {
+      "description": "Which sequence this mapping is correct relative to. Where broadcast, chronological and intended orders differ there is no single correct sequence, so the ordering is part of the assertion rather than an assumption.",
+      "enum": ["broadcast", "chronological", "intended", "provider"],
+      "default": "broadcast"
+    },
+
+    "coverage_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "source_start", "source_end", "offset"],
+      "properties": {
+        "mode": {
+          "description": "The target's numbering scheme. Where a target exposes both season-relative and series-absolute sequences and they diverge, both are recorded as separate segments.",
+          "enum": ["single", "flat", "season", "absolute"]
+        },
+        "season": { "type": "integer", "minimum": 0 },
+        "numbering_space": { "$ref": "#/$defs/numbering_space" },
+        "ordering": { "$ref": "#/$defs/ordering" },
+
+        "source_start": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "First episode of THIS RELEASE that the segment covers. 1-based, inclusive. Named for the space it is in, deliberately: an earlier draft used bare start and end, two governing documents read them in opposite coordinate spaces, and no invariant could tell the readings apart."
+        },
+        "source_end": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Last episode of THIS RELEASE that the segment covers. 1-based, inclusive."
+        },
+        "offset": {
+          "type": "integer",
+          "description": "target_episode = source_episode + offset, within this segment."
+        },
+
+        "region": {
+          "type": "string",
+          "pattern": "^([A-Z]{2}|\\*)$",
+          "description": "ISO 3166-1 alpha-2, or * for all territories. Present where a mapping holds only in some markets: regional editions skip episodes, and platform identifiers differ by territory."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "season" } }, "required": ["mode"] },
+          "then": { "required": ["season"] }
+        }
+      ]
+    },
+
+    "episode_link": {
+      "description": "An explicit episode correspondence, for the cases a constant offset cannot express. A single offset induces an injective map, so it can express neither one source episode covering two target episodes nor two source episodes forming one. Both shapes are real and both appear in the conformance corpus.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind"],
+      "properties": {
+        "from": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 },
+          "minItems": 1,
+          "maxItems": 16,
+          "description": "Source episode numbers. Bounded to keep a pathological entry from becoming a denial of service."
+        },
+        "to": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 },
+          "minItems": 0,
+          "maxItems": 16,
+          "description": "Target episode numbers. Empty when the counterpart does not exist."
+        },
+        "kind": { "enum": ["exact", "expands", "merges", "absent"] },
+        "reason": { "type": "string", "description": "Required when kind is absent." }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "absent" } }, "required": ["kind"] },
+          "then": { "required": ["reason"], "properties": { "to": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "expands" } }, "required": ["kind"] },
+          "then": { "properties": { "from": { "maxItems": 1 }, "to": { "minItems": 2 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "merges" } }, "required": ["kind"] },
+          "then": { "properties": { "from": { "minItems": 2 }, "to": { "minItems": 1, "maxItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "exact" } }, "required": ["kind"] },
+          "then": { "properties": { "from": { "maxItems": 1 }, "to": { "minItems": 1, "maxItems": 1 } } }
+        }
+      ]
+    },
+
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "observed_source", "at"],
+      "properties": {
+        "method": {
+          "enum": [
+            "rightsholder_asserted",
+            "human_verified",
+            "upstream_declared",
+            "derived_air_dates",
+            "heuristic_title_match"
+          ]
+        },
+        "observed_source": {
+          "type": "string",
+          "minLength": 3,
+          "description": "What was actually observed. A person's name identifies a curator, not a fact, so the source observed is recorded separately from whoever checked it."
+        },
+        "reviewer": { "type": "string", "description": "Who checked. Distinct from the source." },
+        "at": { "$ref": "#/$defs/date", "description": "Retrieval date. An observation without one cannot be re-checked." }
+      }
+    },
+
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assertion_id", "ns", "id", "entity", "relation", "evidence_class", "evidence", "id_source"],
+      "properties": {
+        "assertion_id": { "$ref": "#/$defs/assertion_id" },
+        "ns": { "type": "string", "description": "Registered in schema/namespaces.json." },
+        "id": { "type": "string", "minLength": 1 },
+        "entity": {
+          "enum": ["series", "season", "release", "episode", "film"],
+          "description": "The grain the target identifier names. Required because some providers operate numerically overlapping identifier spaces for television and film."
+        },
+        "relation": {
+          "enum": ["exact", "subset_of", "superset_of", "overlaps", "alternate_cut_of", "related", "not_same_as"]
+        },
+        "coverage": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/coverage_segment" },
+          "description": "A list, not one block. One release can span several target seasons or map to several non-adjacent ranges, and a single segment can express neither."
+        },
+        "episode_links": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/episode_link" },
+          "description": "Present only where the correspondence is not a constant offset. Materialisation follows non-affine exceptions, not non-zero offsets: a zero-offset split needs links and a large constant offset does not."
+        },
+        "reasoning": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Required for not_same_as. Storing the refutation with its reasoning is what stops an automated pass re-deriving the same bad merge forever."
+        },
+        "evidence_class": {
+          "description": "The kind of backing, not a rank. Unordered: asserted, verified and corroborated describe different things and consumers must not sort them.",
+          "enum": ["asserted", "verified", "corroborated", "inferred", "candidate", "disputed"]
+        },
+        "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidence" } },
+        "id_source": {
+          "type": "string",
+          "minLength": 3,
+          "description": "The route the identifier arrived by, which is distinct from the namespace it names. The same identifier read from a permissively licensed third party and extracted directly from its home provider share a namespace and have different provenance. Licence posture attaches to this."
+        },
+        "authority": {
+          "type": "string",
+          "description": "The registered authority making this assertion, where one is. Precedence applies only within that authority's declared scope."
+        },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "relation": { "const": "not_same_as" } }, "required": ["relation"] },
+          "then": { "required": ["reasoning"] }
+        },
+        {
+          "if": {
+            "properties": { "relation": { "enum": ["subset_of", "superset_of", "overlaps"] } },
+            "required": ["relation"]
+          },
+          "then": {
+            "required": ["coverage"],
+            "properties": { "coverage": { "minItems": 1 } }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_class": { "const": "asserted" } }, "required": ["evidence_class"] },
+          "then": { "required": ["authority"] }
+        }
+      ]
+    }
+  }
+}
