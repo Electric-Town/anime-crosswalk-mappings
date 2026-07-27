@@ -11,10 +11,14 @@ Exits 1 and names every problem. No dependencies outside the standard library.
 """
 from __future__ import annotations
 
-import json
 import re
 import sys
 from pathlib import Path
+
+try:
+    from .json_input import JsonInputError, load_json_object
+except ImportError:
+    from json_input import JsonInputError, load_json_object
 
 ROOT = Path(__file__).resolve().parent.parent
 NAMESPACES = ROOT / "schema" / "namespaces.json"
@@ -25,16 +29,6 @@ REQUIRED_NS_KEYS = {"label", "grain", "id_pattern", "url_template", "posture"}
 REQUIRED_AUTH_KEYS = {"id", "label", "role", "scopes", "verification", "licence"}
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 KEBAB = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
-
-
-def load(path: Path, errors: list[str]) -> dict | None:
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        errors.append(f"{path.relative_to(ROOT)}: missing")
-    except json.JSONDecodeError as exc:
-        errors.append(f"{path.relative_to(ROOT)}:{exc.lineno}: {exc.msg}")
-    return None
 
 
 def check_namespaces(doc: dict, errors: list[str]) -> int:
@@ -209,14 +203,17 @@ def check_policy(doc: dict, errors: list[str]) -> int:
 def main() -> int:
     errors: list[str] = []
 
-    ns_doc = load(NAMESPACES, errors)
-    ns_count = check_namespaces(ns_doc, errors) if ns_doc else 0
+    try:
+        ns_doc = load_json_object(NAMESPACES, ROOT)
+        auth_doc = load_json_object(AUTHORITIES, ROOT)
+        policy_doc = load_json_object(POLICY, ROOT)
+    except JsonInputError as exc:
+        print(exc)
+        return 1
 
-    auth_doc = load(AUTHORITIES, errors)
-    auth_count = check_authorities(auth_doc, errors) if auth_doc else 0
-
-    policy_doc = load(POLICY, errors)
-    rule_count = check_policy(policy_doc, errors) if policy_doc else 0
+    ns_count = check_namespaces(ns_doc, errors)
+    auth_count = check_authorities(auth_doc, errors)
+    rule_count = check_policy(policy_doc, errors)
 
     if errors:
         print(f"{len(errors)} problem(s):\n")

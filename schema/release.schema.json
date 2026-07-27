@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/schema/release.schema.json",
+  "$id": "https://github.com/Electric-Town/anime-crosswalk-mappings/schema/1.0.0/release.schema.json",
   "title": "Release",
   "description": "The primary entity: a broadcast unit at the grain upstream trackers use. A cour, an OVA, an ONA, a film, a special. A film is a Release with one episode. Derived from conformance/cases.json; every construct here exists because a case requires it, and conformance/capability-map.json records which.",
   "type": "object",
@@ -140,7 +140,7 @@
       "description": "Stable identifier for one mapping claim. Revocation operates on these: a single wrong edge can be withdrawn without touching the rest of the release."
     },
 
-    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema_version": { "const": "1.0.0" },
     "date": { "type": "string", "format": "date", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
 
     "numbering_space": {
@@ -327,7 +327,41 @@
         },
         {
           "if": { "properties": { "evidence_class": { "const": "asserted" } }, "required": ["evidence_class"] },
-          "then": { "required": ["authority"] }
+          "then": {
+            "required": ["authority"],
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "properties": { "method": { "const": "rightsholder_asserted" } },
+                  "required": ["method"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_class": { "const": "verified" } }, "required": ["evidence_class"] },
+          "then": {
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "properties": {
+                    "method": { "const": "human_verified" },
+                    "reviewer": { "type": "string", "minLength": 1 }
+                  },
+                  "required": ["method", "reviewer"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_class": { "const": "corroborated" } }, "required": ["evidence_class"] },
+          "then": {
+            "properties": {
+              "evidence": { "minItems": 2, "uniqueItems": true }
+            }
+          }
         }
       ]
     }

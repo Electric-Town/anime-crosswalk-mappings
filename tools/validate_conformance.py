@@ -19,6 +19,11 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from .json_input import JsonInputError, load_json_object
+except ImportError:
+    from json_input import JsonInputError, load_json_object
+
 ROOT = Path(__file__).resolve().parent.parent
 CASES = ROOT / "conformance" / "cases.json"
 
@@ -47,12 +52,9 @@ def main() -> int:
     errors: list[str] = []
 
     try:
-        doc = json.loads(CASES.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        print(f"{CASES.relative_to(ROOT)}: missing")
-        return 1
-    except json.JSONDecodeError as exc:
-        print(f"{CASES.relative_to(ROOT)}:{exc.lineno}: {exc.msg}")
+        doc = load_json_object(CASES, ROOT)
+    except JsonInputError as exc:
+        print(exc)
         return 1
 
     defined = set(doc.get("capabilities", {}))

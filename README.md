@@ -47,7 +47,7 @@ Nothing is required to *consume* the published data. It is plain JSON.
 To run the checks:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install --require-hashes -r requirements-dev.lock
 python3 tools/validate_registry_files.py    # namespaces, authorities, resolution policy
 python3 tools/validate_conformance.py       # corpus well formed, no identifiers
 python3 tools/validate_schema.py            # schema valid, fixtures enforced, capabilities covered
@@ -75,19 +75,57 @@ that share is disproportionately the long-running, high-traffic shows people act
 
 **Mappings are typed, range-scoped edges, not fields on a record.**
 
+The complete example below is mirrored in
+[`examples/release.json`](examples/release.json) and validated in CI.
+
+<!-- validated-release-example: examples/release.json -->
 ```json
 {
-  "ns": "tvdb",
-  "id": "267440",
-  "relation": "subset_of",
-  "coverage": { "mode": "season", "season": 3, "start": 1, "end": 10, "offset": 12 }
+  "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "schema_version": "1.0.0",
+  "status": "active",
+  "primary_title": {
+    "text": "Placeholder Release, Second Part",
+    "language": "ja-Latn"
+  },
+  "type": "TV",
+  "episode_count": 10,
+  "mappings": [
+    {
+      "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+      "ns": "example-series-db",
+      "id": "100000",
+      "entity": "series",
+      "relation": "subset_of",
+      "coverage": [
+        {
+          "mode": "season",
+          "season": 3,
+          "source_start": 1,
+          "source_end": 10,
+          "offset": 12
+        }
+      ],
+      "evidence_class": "verified",
+      "evidence": [
+        {
+          "method": "human_verified",
+          "observed_source": "example-series-db series 100000, season listing",
+          "reviewer": "gh:example",
+          "at": "2026-07-26"
+        }
+      ],
+      "id_source": "example-crossref:mappings"
+    }
+  ],
+  "updated": "2026-07-26"
 }
 ```
 
-Episodes 1 to 10 of this release are TVDB season 3 episodes 13 to 22. `start` and `end` are
-1-based inclusive **source** episode numbers; the target is `source + offset`. A consumer
-fetches exactly the right ten episode records. A boolean saying "this might be wrong" cannot
-answer that question, which is why this project exists.
+Episodes 1 to 10 of this release are target season 3 episodes 13 to 22.
+`source_start` and `source_end` are 1-based inclusive **source** episode numbers; the target
+is `source + offset`. A consumer fetches exactly the right ten episode records. A boolean
+saying "this might be wrong" cannot answer that question, which is why this project exists.
 
 **Identifiers are permanent.** They are never reused and never deleted. A retired identifier
 becomes a tombstone carrying a redirect, so any identifier ever published resolves forever.

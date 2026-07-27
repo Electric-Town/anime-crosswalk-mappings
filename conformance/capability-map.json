@@ -8,54 +8,80 @@
   "map": {
     "range_scoped_coverage": {
       "pointer": "/$defs/coverage_segment/properties/source_start",
+      "fixture": "split-cour-dual-numbering",
+      "instance_path": "/mappings/0/coverage/0",
       "note": "A segment states the span of the release it covers, so an edge need not apply to the whole release."
     },
     "non_zero_offset": {
       "pointer": "/$defs/coverage_segment/properties/offset",
+      "fixture": "split-cour-dual-numbering",
+      "instance_path": "/mappings/0/coverage/0",
       "note": "target = source + offset, within a segment."
     },
     "dual_numbering": {
       "pointer": "/$defs/coverage_segment/properties/mode",
+      "fixture": "split-cour-dual-numbering",
+      "instance_path": "/mappings/0/coverage/0",
       "note": "Season and absolute are separate modes, so a target exposing both diverging sequences gets one segment for each rather than a choice between them."
     },
     "cross_boundary_span": {
       "pointer": "/$defs/assertion/properties/coverage",
+      "fixture": "cross-boundary-discontinuous",
+      "instance_path": "/mappings/0",
       "note": "Coverage is an array. A release crossing a target season boundary carries one segment per season, each with its own offset. A single block could express only one of them."
     },
     "discontinuous_coverage": {
       "pointer": "/$defs/assertion/properties/coverage",
+      "fixture": "cross-boundary-discontinuous",
+      "instance_path": "/mappings/0",
       "note": "Same array. Non-adjacent ranges are separate segments, which is what regional episode skips and arc-split long-runners require."
     },
     "cardinality_expand": {
       "pointer": "/$defs/episode_link/allOf/1",
+      "fixture": "non-affine-cardinality",
+      "instance_path": "/mappings/0/episode_links/0",
       "note": "kind=expands, constrained to one source and two or more targets. A constant offset is injective and cannot express this at all."
     },
     "cardinality_merge": {
       "pointer": "/$defs/episode_link/allOf/2",
+      "fixture": "non-affine-cardinality",
+      "instance_path": "/mappings/0/episode_links/1",
       "note": "kind=merges, constrained to two or more sources and exactly one target. The inverse of expands and strictly harder, because inverting a scalar map gives one key two values."
     },
     "numbering_space": {
       "pointer": "/$defs/coverage_segment/properties/numbering_space",
+      "fixture": "numbering-ordering",
+      "instance_path": "/mappings/0/coverage/0",
       "note": "Specials, trailers, credits and parodies are separate sequences. Numbers are comparable only within one, so a trailer numbered 1 and an episode numbered 1 do not collide."
     },
     "negative_assertion": {
       "pointer": "/$defs/assertion/properties/reasoning",
+      "fixture": "negative-alternate-series-absence",
+      "instance_path": "/mappings/0",
       "note": "relation=not_same_as requires reasoning. Storing the refutation is what stops an automated pass re-deriving the same bad merge."
     },
     "alternate_cut": {
       "pointer": "/$defs/assertion/properties/relation",
+      "fixture": "negative-alternate-series-absence",
+      "instance_path": "/mappings/1",
       "note": "alternate_cut_of links sibling releases that are the same work in a different edit, without merging them into one entity."
     },
     "multi_series_membership": {
       "pointer": "/properties/series",
+      "fixture": "negative-alternate-series-absence",
+      "instance_path": "/",
       "note": "A list, never a single parent. A recap film belongs to its own line and to the parent series at once."
     },
     "known_absent": {
       "pointer": "/properties/known_absent",
+      "fixture": "negative-alternate-series-absence",
+      "instance_path": "/",
       "note": "A checked absence with a reason, distinct from an unchecked field. That distinction is the whole value of recording it."
     },
     "ordering_variance": {
       "pointer": "/$defs/coverage_segment/properties/ordering",
+      "fixture": "numbering-ordering",
+      "instance_path": "/mappings/0/coverage/0",
       "note": "Where broadcast, chronological and intended orders differ there is no single correct sequence, so the ordering a mapping is correct relative to is part of the assertion."
     }
   }
