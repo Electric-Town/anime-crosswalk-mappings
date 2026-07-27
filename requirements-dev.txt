@@ -6,3 +6,6 @@
 # something this project should absorb without noticing.
 
 jsonschema==4.26.0
+
+# Regenerate the committed, hash-checked transitive lock with:
+# uv pip compile requirements-dev.txt --generate-hashes --output-file requirements-dev.lock

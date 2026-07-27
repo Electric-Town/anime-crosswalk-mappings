@@ -27,14 +27,14 @@ jobs:
         # and a check that only ever runs on one version cannot see the difference.
         python: ["3.11", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: ${{ matrix.python }}
 
       - name: Install pinned dev dependencies
-        run: python3 -m pip install -r requirements-dev.txt
+        run: python3 -m pip install --require-hashes -r requirements-dev.lock
 
       - name: Namespace registry, authority registry and resolution policy are consistent
         run: python3 tools/validate_registry_files.py
@@ -48,12 +48,15 @@ jobs:
       - name: Every path the documentation references exists
         run: python3 tools/check_docs.py
 
+      - name: Validator regression and mutation tests
+        run: python3 -m unittest discover -v
+
   dco:
     name: DCO sign-off
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -61,25 +64,4 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          missing=0
-          while read -r sha; do
-            [ -n "$sha" ] || continue
-            if ! git log -1 --format=%B "$sha" | grep -qiE '^Signed-off-by: .+ <.+@.+>'; then
-              echo "::error::$sha is not signed off"
-              git log -1 --format='  %h %s' "$sha"
-              missing=1
-            fi
-          done < <(git rev-list "$BASE".."$HEAD")
-
-          if [ "$missing" -ne 0 ]; then
-            echo ""
-            echo "Contributions are dedicated to the public domain under CC0-1.0, and the"
-            echo "sign-off is how that is certified. See CONTRIBUTING.md."
-            echo ""
-            echo "Fix the most recent commit with:  git commit --amend -s"
-            echo "Fix a whole branch with:          git rebase --signoff main"
-            exit 1
-          fi
-          echo "all commits signed off"
+        run: python3 tools/check_dco.py "$BASE" "$HEAD"
