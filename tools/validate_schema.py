@@ -16,57 +16,105 @@ Requires jsonschema. Listed in requirements-dev.txt and installed in CI.
 """
 from __future__ import annotations
 
+import copy
 import json
+import re
 import sys
 from pathlib import Path
 
 try:
-    from jsonschema import Draft202012Validator
+    from jsonschema import Draft202012Validator, FormatChecker
 except ImportError:
     print("jsonschema is not installed. pip install -r requirements-dev.txt")
     sys.exit(1)
+
+try:
+    from .json_input import JsonInputError, load_json_object
+except ImportError:
+    from json_input import JsonInputError, load_json_object
 
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = ROOT / "schema" / "release.schema.json"
 CASES = ROOT / "conformance" / "cases.json"
 CAP_MAP = ROOT / "conformance" / "capability-map.json"
 FIXTURES = ROOT / "conformance" / "fixtures.json"
+README = ROOT / "README.md"
+EXAMPLE = ROOT / "examples" / "release.json"
 
 
-def load(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def resolve_pointer(doc: object, pointer: str) -> tuple[bool, str]:
-    """RFC 6901 JSON Pointer. Returns (found, failing_token)."""
+def pointer_tokens(pointer: str) -> list[str] | None:
     if pointer == "":
-        return True, ""
+        return []
     if not pointer.startswith("/"):
-        return False, pointer
+        return None
+    return [
+        raw.replace("~1", "/").replace("~0", "~")
+        for raw in pointer.lstrip("/").split("/")
+    ]
+
+
+def resolve_pointer(doc: object, pointer: str) -> tuple[bool, object | None, str]:
+    """RFC 6901 JSON Pointer. Returns (found, value, failing_token)."""
+    tokens = pointer_tokens(pointer)
+    if tokens is None:
+        return False, None, pointer
     node = doc
-    for raw in pointer.lstrip("/").split("/"):
-        token = raw.replace("~1", "/").replace("~0", "~")
+    for token in tokens:
         if isinstance(node, dict):
             if token not in node:
-                return False, token
+                return False, None, token
             node = node[token]
         elif isinstance(node, list):
-            try:
-                node = node[int(token)]
-            except (ValueError, IndexError):
-                return False, token
+            if not token.isdigit() or int(token) >= len(node):
+                return False, None, token
+            node = node[int(token)]
         else:
-            return False, token
-    return True, ""
+            return False, None, token
+    return True, node, ""
+
+
+def replace_pointer(doc: object, pointer: str, replacement: object) -> bool:
+    tokens = pointer_tokens(pointer)
+    if not tokens:
+        return False
+    parent_pointer = (
+        ""
+        if len(tokens) == 1
+        else "/" + "/".join(
+            token.replace("~", "~0").replace("/", "~1") for token in tokens[:-1]
+        )
+    )
+    found, parent, _ = resolve_pointer(doc, parent_pointer)
+    if not found:
+        return False
+    token = tokens[-1]
+    if isinstance(parent, dict) and token in parent:
+        parent[token] = replacement
+        return True
+    if isinstance(parent, list) and token.isdigit() and int(token) < len(parent):
+        parent[int(token)] = replacement
+        return True
+    return False
+
+
+def json_pointer(parts: object) -> str:
+    return "/" + "/".join(
+        str(part).replace("~", "~0").replace("/", "~1") for part in parts
+    )
 
 
 def main() -> int:
     errors: list[str] = []
 
-    schema = load(SCHEMA)
-    cases = load(CASES)
-    cap_map = load(CAP_MAP)
-    fixtures = load(FIXTURES)
+    try:
+        schema = load_json_object(SCHEMA, ROOT)
+        cases = load_json_object(CASES, ROOT)
+        cap_map = load_json_object(CAP_MAP, ROOT)
+        fixtures = load_json_object(FIXTURES, ROOT)
+        example = load_json_object(EXAMPLE, ROOT)
+    except JsonInputError as exc:
+        print(exc)
+        return 1
 
     # 1. The schema is a valid schema.
     try:
@@ -74,11 +122,23 @@ def main() -> int:
     except Exception as exc:
         print(f"schema/release.schema.json is not valid JSON Schema 2020-12:\n  {exc}")
         return 1
-    validator = Draft202012Validator(schema)
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
 
     # 2. Fixtures. Valid must pass; invalid must fail.
     valid_fixtures = fixtures.get("valid", [])
     invalid_fixtures = fixtures.get("invalid", [])
+
+    fixture_ids: set[str] = set()
+    fixture_by_id: dict[str, dict] = {}
+    for entry in valid_fixtures + invalid_fixtures:
+        fixture_id = entry.get("id")
+        if not fixture_id:
+            errors.append("fixture has no id")
+        elif fixture_id in fixture_ids:
+            errors.append(f"fixture id is duplicated: {fixture_id}")
+        else:
+            fixture_ids.add(fixture_id)
+            fixture_by_id[fixture_id] = entry
 
     for entry in valid_fixtures:
         problems = sorted(validator.iter_errors(entry["record"]), key=lambda e: list(e.path))
@@ -90,10 +150,55 @@ def main() -> int:
             )
 
     for entry in invalid_fixtures:
-        if validator.is_valid(entry["record"]):
+        problems = list(validator.iter_errors(entry["record"]))
+        if not problems:
             errors.append(
                 f"fixture that must be rejected was accepted: {entry['must_reject']}"
             )
+            continue
+        expected_validator = entry.get("expected_validator")
+        expected_schema_path = entry.get("expected_schema_path")
+        if not expected_validator or not expected_schema_path:
+            errors.append(f"invalid fixture {entry.get('id', '<unnamed>')} has no expected failure")
+            continue
+        if not any(
+            problem.validator == expected_validator
+            and json_pointer(problem.absolute_schema_path) == expected_schema_path
+            for problem in problems
+        ):
+            observed = ", ".join(
+                f"{problem.validator}@{json_pointer(problem.absolute_schema_path)}"
+                for problem in problems
+            )
+            errors.append(
+                f"invalid fixture {entry['id']} did not fail as intended; "
+                f"expected {expected_validator}@{expected_schema_path}, observed {observed}"
+            )
+
+    example_problems = list(validator.iter_errors(example))
+    if example_problems:
+        first = example_problems[0]
+        errors.append(
+            f"examples/release.json is invalid at "
+            f"{json_pointer(first.absolute_path)}: {first.message}"
+        )
+    marker = "<!-- validated-release-example: examples/release.json -->"
+    readme = README.read_text(encoding="utf-8")
+    match = re.search(
+        re.escape(marker) + r"\s*```json\s*(.*?)\s*```",
+        readme,
+        re.DOTALL,
+    )
+    if not match:
+        errors.append("README.md has no marked release example")
+    else:
+        try:
+            readme_example = json.loads(match.group(1))
+        except ValueError as exc:
+            errors.append(f"README.md release example is malformed JSON: {exc}")
+        else:
+            if readme_example != example:
+                errors.append("README.md release example differs from examples/release.json")
 
     # 3. Derivation. Every declared capability maps to something real, and is exercised.
     declared = set(cases.get("capabilities", {}))
@@ -116,7 +221,7 @@ def main() -> int:
 
     for name, entry in sorted(mapped.items()):
         pointer = entry.get("pointer", "")
-        found, token = resolve_pointer(schema, pointer)
+        found, _, token = resolve_pointer(schema, pointer)
         if not found:
             errors.append(
                 f"capability {name}: pointer {pointer} does not resolve in the schema "
@@ -124,6 +229,38 @@ def main() -> int:
             )
         if len(entry.get("note", "")) < 20:
             errors.append(f"capability {name}: note is too thin to explain the construct")
+
+        fixture_id = entry.get("fixture")
+        instance_path = entry.get("instance_path")
+        fixture = fixture_by_id.get(fixture_id)
+        if fixture is None:
+            errors.append(f"capability {name}: fixture {fixture_id!r} does not exist")
+            continue
+        if name not in fixture.get("exercises", []):
+            errors.append(f"capability {name}: fixture {fixture_id} does not exercise it")
+        if not isinstance(instance_path, str) or not instance_path.startswith("/"):
+            errors.append(f"capability {name}: instance_path must be a JSON Pointer")
+            continue
+
+        mutated_schema = copy.deepcopy(schema)
+        if not replace_pointer(mutated_schema, pointer, False):
+            continue
+        mutation_errors = list(
+            Draft202012Validator(
+                mutated_schema, format_checker=FormatChecker()
+            ).iter_errors(fixture["record"])
+        )
+        if not any(
+            json_pointer(problem.absolute_path) == instance_path
+            for problem in mutation_errors
+        ):
+            observed = ", ".join(
+                json_pointer(problem.absolute_path) for problem in mutation_errors
+            ) or "<none>"
+            errors.append(
+                f"capability {name}: disabling {pointer} did not reject fixture "
+                f"{fixture_id} at {instance_path}; observed {observed}"
+            )
 
     exercised: set[str] = set()
     for entry in valid_fixtures:

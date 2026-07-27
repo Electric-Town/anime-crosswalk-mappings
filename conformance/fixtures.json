@@ -5,6 +5,7 @@
   "note_on_identifiers": "ULIDs below are syntactically valid and semantically meaningless. External ids are placeholder digits. Nothing here should be read as an assertion about any work.",
   "valid": [
     {
+      "id": "split-cour-dual-numbering",
       "exercises": [
         "range_scoped_coverage",
         "non_zero_offset",
@@ -58,6 +59,7 @@
       }
     },
     {
+      "id": "cross-boundary-discontinuous",
       "exercises": [
         "cross_boundary_span",
         "discontinuous_coverage"
@@ -111,6 +113,7 @@
       }
     },
     {
+      "id": "non-affine-cardinality",
       "exercises": [
         "cardinality_expand",
         "cardinality_merge"
@@ -188,6 +191,7 @@
       }
     },
     {
+      "id": "numbering-ordering",
       "exercises": [
         "numbering_space",
         "ordering_variance"
@@ -244,6 +248,7 @@
       }
     },
     {
+      "id": "negative-alternate-series-absence",
       "exercises": [
         "negative_assertion",
         "alternate_cut",
@@ -318,6 +323,7 @@
       }
     },
     {
+      "id": "tombstone-redirect",
       "exercises": [
         "range_scoped_coverage"
       ],
@@ -339,6 +345,9 @@
   ],
   "invalid": [
     {
+      "id": "tombstone-without-redirect",
+      "expected_validator": "required",
+      "expected_schema_path": "/allOf/0/then/required",
       "must_reject": "A tombstone with no redirect. An identifier that stops resolving breaks every consumer holding it.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FB7",
@@ -354,6 +363,9 @@
       }
     },
     {
+      "id": "subset-without-coverage",
+      "expected_validator": "required",
+      "expected_schema_path": "/properties/mappings/items/allOf/1/then/required",
       "must_reject": "subset_of with no coverage. This is the lossy shape the project exists to replace: it records that a target is involved while discarding which part maps to which.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FB8",
@@ -386,6 +398,9 @@
       }
     },
     {
+      "id": "negative-assertion-without-reasoning",
+      "expected_validator": "required",
+      "expected_schema_path": "/properties/mappings/items/allOf/0/then/required",
       "must_reject": "not_same_as with no reasoning. An unexplained refutation cannot stop the merge being re-derived, because nothing records why it was wrong.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBA",
@@ -408,6 +423,7 @@
               {
                 "method": "human_verified",
                 "observed_source": "example-series-db entry 1, episode listing",
+                "reviewer": "gh:example",
                 "at": "2026-07-26"
               }
             ],
@@ -418,6 +434,9 @@
       }
     },
     {
+      "id": "expands-with-one-target",
+      "expected_validator": "minItems",
+      "expected_schema_path": "/properties/mappings/items/properties/episode_links/items/allOf/1/then/properties/to/minItems",
       "must_reject": "expands with a single target. If one source episode maps to one target it is not an expansion, and accepting it would let a scalar relationship masquerade as cardinality.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBC",
@@ -469,6 +488,9 @@
       }
     },
     {
+      "id": "evidence-without-observed-source",
+      "expected_validator": "required",
+      "expected_schema_path": "/properties/mappings/items/properties/evidence/items/required",
       "must_reject": "An evidence record with no observed source. A reviewer name identifies a curator, not a fact, and an assertion nobody can re-check is not evidence.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBE",
@@ -501,6 +523,9 @@
       }
     },
     {
+      "id": "asserted-without-authority",
+      "expected_validator": "required",
+      "expected_schema_path": "/properties/mappings/items/allOf/2/then/required",
       "must_reject": "evidence_class asserted with no authority named. Rightsholder precedence that cannot be attributed to a registered organisation is forgeable, and forging it would be the cheapest way to poison the graph.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBG",
@@ -533,6 +558,9 @@
       }
     },
     {
+      "id": "mapping-without-id-source",
+      "expected_validator": "required",
+      "expected_schema_path": "/properties/mappings/items/required",
       "must_reject": "A mapping with no id_source. Licence posture attaches to the route an identifier arrived by, so an identifier with no recorded route cannot be checked against the namespace registry at all.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
@@ -564,6 +592,9 @@
       }
     },
     {
+      "id": "resolved-conflict-without-policy",
+      "expected_validator": "required",
+      "expected_schema_path": "/properties/conflicts/items/allOf/0/then/required",
       "must_reject": "A resolved conflict with no deciding policy version. Without it a resolution cannot be reproduced, and a later policy change silently rewrites the reasoning behind data already published.",
       "record": {
         "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBM",
@@ -591,6 +622,166 @@
               }
             ],
             "status": "resolved"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "id": "unsupported-schema-version",
+      "expected_validator": "const",
+      "expected_schema_path": "/properties/schema_version/const",
+      "must_reject": "A record for a different schema version cannot be interpreted safely by this schema.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+        "schema_version": "2.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "id": "impossible-month",
+      "expected_validator": "format",
+      "expected_schema_path": "/properties/updated/format",
+      "must_reject": "A syntactically shaped date with an impossible month is not a calendar date.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBP",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [],
+        "updated": "2026-99-99"
+      }
+    },
+    {
+      "id": "impossible-day",
+      "expected_validator": "format",
+      "expected_schema_path": "/properties/updated/format",
+      "must_reject": "A syntactically shaped date that does not exist in the calendar is not a valid observation date.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBQ",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [],
+        "updated": "2026-02-30"
+      }
+    },
+    {
+      "id": "verified-without-human-review",
+      "expected_validator": "contains",
+      "expected_schema_path": "/properties/mappings/items/allOf/3/then/properties/evidence/contains",
+      "must_reject": "A verified assertion needs a human verification record and the reviewer who performed it.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBR",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBS",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "exact",
+            "evidence_class": "verified",
+            "evidence": [
+              {
+                "method": "heuristic_title_match",
+                "observed_source": "title similarity",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "id": "corroborated-with-one-source",
+      "expected_validator": "minItems",
+      "expected_schema_path": "/properties/mappings/items/allOf/4/then/properties/evidence/minItems",
+      "must_reject": "A corroborated assertion requires more than one evidence record.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBT",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBV",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "exact",
+            "evidence_class": "corroborated",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "one upstream listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "example-crossref:mappings"
+          }
+        ],
+        "updated": "2026-07-26"
+      }
+    },
+    {
+      "id": "asserted-without-rightsholder-evidence",
+      "expected_validator": "contains",
+      "expected_schema_path": "/properties/mappings/items/allOf/2/then/properties/evidence/contains",
+      "must_reject": "An asserted evidence class requires evidence that the rightsholder actually made the assertion.",
+      "record": {
+        "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FBW",
+        "schema_version": "1.0.0",
+        "status": "active",
+        "primary_title": {
+          "text": "Placeholder",
+          "language": "ja-Latn"
+        },
+        "type": "TV",
+        "mappings": [
+          {
+            "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+            "ns": "example-series-db",
+            "id": "1",
+            "entity": "series",
+            "relation": "exact",
+            "evidence_class": "asserted",
+            "evidence": [
+              {
+                "method": "upstream_declared",
+                "observed_source": "unattributed upstream listing",
+                "at": "2026-07-26"
+              }
+            ],
+            "id_source": "authority:example",
+            "authority": "example"
           }
         ],
         "updated": "2026-07-26"
