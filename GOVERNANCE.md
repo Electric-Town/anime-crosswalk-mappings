@@ -60,11 +60,10 @@ organisation does not lose the data.
 A maintainer is considered unreachable after 90 days with no commit, issue response, or
 release.
 
-1. At day 90 an automated workflow opens a public issue titled `SUCCESSION: maintainer
-   unreachable`, and a notice goes to the project's external contact address and to the
-   archival deposit record. The notice does not depend on this repository or this
-   organisation remaining reachable, because a dead-man's switch wired to the same power
-   supply as the patient is not a switch.
+1. The planned succession automation will open a public issue at day 90 titled
+   `SUCCESSION: maintainer unreachable`, then notify the project's external contact address
+   and archival deposit record. Until those independent notification routes exist, this is a
+   manual governance check rather than an operational guarantee.
 2. If no maintainer responds by day 120, anyone may fork and continue.
 3. The fork announces itself in that issue. The last release remains valid and verifiable
    from its published manifest.
