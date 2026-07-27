@@ -59,10 +59,9 @@ body:
       description: The dataset release you vendored, if you are a downstream consumer.
       placeholder: "2026-30"
 
-  - type: checkboxes
-    id: sourcing
+  - type: input
+    id: acquisition_route
     attributes:
-      label: Sourcing
-      options:
-        - label: This does not come from a source the namespace registry marks `indirect_only` or `excluded`
-          required: true
+      label: Identifier acquisition route
+      description: If you know how the identifier was acquired, include that route. Leave blank if not.
+      placeholder: "wikidata:P5646"
