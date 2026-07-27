@@ -54,8 +54,8 @@ name, or both. Defined once, used everywhere, and changed only through a schema 
 
 **Coverage**
 : Which episodes of this Release the edge applies to, and how they map to the target.
-  `start` and `end` are 1-based inclusive **source** episode numbers. The target episode is
-  `source + offset`. `mode` selects the target's numbering scheme:
+  `source_start` and `source_end` are 1-based inclusive **source** episode numbers. The target
+  episode is `source + offset`. `mode` selects the target's numbering scheme:
 
   | Mode | Meaning |
   |---|---|

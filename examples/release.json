@@ -1,0 +1,40 @@
+{
+  "id": "rel_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "schema_version": "1.0.0",
+  "status": "active",
+  "primary_title": {
+    "text": "Placeholder Release, Second Part",
+    "language": "ja-Latn"
+  },
+  "type": "TV",
+  "episode_count": 10,
+  "mappings": [
+    {
+      "assertion_id": "asr_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+      "ns": "example-series-db",
+      "id": "100000",
+      "entity": "series",
+      "relation": "subset_of",
+      "coverage": [
+        {
+          "mode": "season",
+          "season": 3,
+          "source_start": 1,
+          "source_end": 10,
+          "offset": 12
+        }
+      ],
+      "evidence_class": "verified",
+      "evidence": [
+        {
+          "method": "human_verified",
+          "observed_source": "example-series-db series 100000, season listing",
+          "reviewer": "gh:example",
+          "at": "2026-07-26"
+        }
+      ],
+      "id_source": "example-crossref:mappings"
+    }
+  ],
+  "updated": "2026-07-26"
+}
